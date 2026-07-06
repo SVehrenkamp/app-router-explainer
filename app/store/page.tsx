@@ -1,21 +1,25 @@
-// The PLP as a plain async Server Component: fetch on the server, render HTML.
-// This is the simplest App Router data-fetching shape — what getServerSideProps
-// becomes. Task 10 layers the React Query hydration pattern on top.
-import { ProductCard } from '@/components/product-card'
-import { getProductsPage } from '@/lib/services'
+// The PLP demonstrating React Query coexistence (spec module 6):
+//   1. A request-scoped QueryClient prefetches page 1 ON THE SERVER.
+//   2. dehydrate() serializes the cache; HydrationBoundary carries it across
+//      the server→client boundary as a prop.
+//   3. The client ProductGrid reads it via useSuspenseInfiniteQuery — SSR HTML
+//      on first paint, zero duplicate fetch — then paginates client-side.
+import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query'
+import { ProductGrid } from '@/components/product-grid'
+import { productsQueryOptions } from '@/lib/products-query'
 
 export const metadata = { title: 'Demo Store' }
 
 export default async function StorePage() {
-  const { data } = await getProductsPage()
+  const queryClient = new QueryClient()
+  await queryClient.prefetchInfiniteQuery(productsQueryOptions)
+
   return (
     <section>
       <h1 className="mb-4 text-2xl font-semibold">All products</h1>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3" data-testid="product-grid">
-        {data.products.map((product) => (
-          <ProductCard key={product.slug} product={product} />
-        ))}
-      </div>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ProductGrid />
+      </HydrationBoundary>
     </section>
   )
 }
