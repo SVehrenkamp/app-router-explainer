@@ -2,6 +2,7 @@
 // awaits ONE microservice. Because each sits behind its own <Suspense>, a slow
 // service delays only its own section — the getInitialProps model (slowest service
 // gates the whole page) is gone.
+import { XrayReport } from '@/components/xray/report'
 import { formatPrice } from '@/lib/format'
 import type { SimOverrides } from '@/lib/sim-params'
 import { getInventory, getPricing, getReviews } from '@/lib/services'
@@ -9,9 +10,10 @@ import { getInventory, getPricing, getReviews } from '@/lib/services'
 type SectionProps = { slug: string; sim: SimOverrides }
 
 export async function PricingPanel({ slug, sim }: SectionProps) {
-  const { data } = await getPricing(slug, sim)
+  const { data, timing } = await getPricing(slug, sim)
   return (
     <div data-testid="pricing-panel" className="space-y-1">
+      <XrayReport label="PricingPanel" kind="server" serviceMs={timing.ms} />
       <div className="text-2xl font-semibold">
         {formatPrice(data.priceCents)}
         {data.priceCents < data.listPriceCents && (
@@ -26,9 +28,10 @@ export async function PricingPanel({ slug, sim }: SectionProps) {
 }
 
 export async function InventoryBadge({ slug, sim }: SectionProps) {
-  const { data } = await getInventory(slug, sim)
+  const { data, timing } = await getInventory(slug, sim)
   return (
     <div data-testid="inventory-badge" className="text-sm">
+      <XrayReport label="InventoryBadge" kind="server" serviceMs={timing.ms} />
       {data.inStock ? (
         <span className="text-emerald-700">
           In stock — {data.quantity} available at {data.warehouse}
@@ -41,9 +44,10 @@ export async function InventoryBadge({ slug, sim }: SectionProps) {
 }
 
 export async function ReviewsSection({ slug, sim }: SectionProps) {
-  const { data } = await getReviews(slug, sim)
+  const { data, timing } = await getReviews(slug, sim)
   return (
     <div data-testid="reviews-section" className="space-y-3">
+      <XrayReport label="ReviewsSection" kind="server" serviceMs={timing.ms} />
       <div className="text-sm text-zinc-600">
         {data.averageRating} ★ · {data.reviews.length} reviews
       </div>
