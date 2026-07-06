@@ -3,6 +3,8 @@
 // to the browser, so client bundles carry zero data-fetching plumbing.
 import 'server-only'
 
+import { headers } from 'next/headers'
+
 import type { SimOverrides } from '@/lib/sim-params'
 import type {
   Inventory,
@@ -28,9 +30,27 @@ export class ServiceError extends Error {
   }
 }
 
-function serviceUrl(path: string, sim?: SimOverrides): string {
-  const base = process.env.SERVICES_BASE_URL ?? 'http://localhost:3000'
-  const url = new URL(path, base)
+// The mock services live in this same app, so "calling a service" means
+// fetching our own origin. That origin differs per environment (next start
+// port, wrangler preview on 8787, the deployed workers.dev hostname), so
+// derive it from the incoming request instead of hardcoding one. Outside a
+// request scope — unit tests, build-time code paths — headers() throws and we
+// fall back to localhost; statically prerendered pages must not reach this
+// layer at all (they call the data functions in-process, see app/store/page).
+async function serviceBase(): Promise<string> {
+  if (process.env.SERVICES_BASE_URL) return process.env.SERVICES_BASE_URL
+  try {
+    const h = await headers()
+    const host = h.get('host')
+    if (host) return `${h.get('x-forwarded-proto') ?? 'http'}://${host}`
+  } catch {
+    // not in a request scope
+  }
+  return 'http://localhost:3000'
+}
+
+async function serviceUrl(path: string, sim?: SimOverrides): Promise<string> {
+  const url = new URL(path, await serviceBase())
   if (sim?.delayMs !== undefined) url.searchParams.set('delay', String(sim.delayMs))
   if (sim?.fail) url.searchParams.set('fail', '1')
   return url.toString()
@@ -43,7 +63,7 @@ async function fetchService<T>(
   sim?: SimOverrides
 ): Promise<ServiceResult<T>> {
   const started = performance.now()
-  const res = await fetch(serviceUrl(path, sim), init)
+  const res = await fetch(await serviceUrl(path, sim), init)
   const ms = Math.round(performance.now() - started)
   if (!res.ok) throw new ServiceError(service, res.status)
   return { data: (await res.json()) as T, timing: { service, ms } }

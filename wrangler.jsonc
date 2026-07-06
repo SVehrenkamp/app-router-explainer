@@ -1,0 +1,26 @@
+// Cloudflare Workers config for the OpenNext adapter. `opennextjs-cloudflare
+// build` compiles the Next.js output into .open-next/; wrangler deploys the
+// worker entry plus the static assets from there.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "app-router-explainer",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": [
+    // Node built-ins used by the Next server runtime.
+    "nodejs_compat",
+    // Fetches to our own hostname (the mock services under /api/services/*)
+    // must route as public requests instead of tripping same-worker recursion.
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "app-router-explainer"
+    }
+  ]
+}

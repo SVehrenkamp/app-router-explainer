@@ -7,3 +7,8 @@ test-results/
 playwright-report/
 .env*.local
 .superpowers/
+
+# OpenNext Cloudflare build output
+.open-next
+.dev.vars
+.wrangler
