@@ -14,6 +14,10 @@ export const SOURCE_FILES = {
   'add-to-cart': { path: 'components/add-to-cart-button.tsx', title: 'AddToCartButton client island' },
   'product-grid': { path: 'components/product-grid.tsx', title: 'ProductGrid — useSuspenseInfiniteQuery' },
   'services-client': { path: 'lib/services.ts', title: 'Server-only service client' },
+  'legacy-pdp': {
+    path: 'pages/legacy/products/[slug].tsx',
+    title: 'Stage 0 — Pages Router PDP (getInitialProps + React Query)',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES
