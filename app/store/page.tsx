@@ -8,12 +8,20 @@ import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query
 import { ProductGrid } from '@/components/product-grid'
 import { CodeButton } from '@/components/code-button'
 import { productsQueryOptions } from '@/lib/products-query'
+import { listProducts } from '@/lib/catalog'
 
 export const metadata = { title: 'Demo Store' }
 
 export default async function StorePage() {
   const queryClient = new QueryClient()
-  await queryClient.prefetchInfiniteQuery(productsQueryOptions)
+  // Same queryKey as the client hook, but the server prefetch reads the
+  // catalog in-process: this page is statically prerendered, and `next build`
+  // has no server to answer an HTTP self-fetch of /api/services/products.
+  // The browser side of the handshake still paginates over the wire.
+  await queryClient.prefetchInfiniteQuery({
+    ...productsQueryOptions,
+    queryFn: ({ pageParam }) => listProducts({ page: Number(pageParam) }),
+  })
 
   return (
     <section>
