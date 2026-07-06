@@ -24,6 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/store" className="text-sm text-zinc-600 hover:text-zinc-900">
               Demo Store
             </Link>
+            <Link href="/journey" className="text-sm text-zinc-600 hover:text-zinc-900">
+              Boundary Journey
+            </Link>
           </div>
         </nav>
         <Providers>
