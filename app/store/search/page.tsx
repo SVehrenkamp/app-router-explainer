@@ -20,7 +20,7 @@ export default async function SearchPage({ searchParams }: Props) {
       {results === null ? (
         <p className="text-zinc-600">Type a query to search the catalog.</p>
       ) : results.length === 0 ? (
-        <p className="text-zinc-600">No products match "{query}".</p>
+        <p className="text-zinc-600">No products match &ldquo;{query}&rdquo;.</p>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {results.map((product) => (

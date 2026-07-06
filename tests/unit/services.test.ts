@@ -4,7 +4,7 @@ import { ServiceError, getPricing, getProductDetail } from '@/lib/services'
 afterEach(() => vi.unstubAllGlobals())
 
 function stubFetch(status: number, body: unknown) {
-  const mock = vi.fn(async () => Response.json(body, { status }))
+  const mock = vi.fn(async (_: RequestInfo | URL) => Response.json(body, { status }))
   vi.stubGlobal('fetch', mock)
   return mock
 }
@@ -21,7 +21,7 @@ describe('services client', () => {
   it('appends sim overrides to the request URL', async () => {
     const mock = stubFetch(200, {})
     await getPricing('x', { delayMs: 0, fail: false })
-    const url = String((mock.mock.calls as any)[0][0])
+    const url = String(mock.mock.calls[0][0])
     expect(url).toContain('/api/services/pricing/x')
     expect(url).toContain('delay=0')
   })
