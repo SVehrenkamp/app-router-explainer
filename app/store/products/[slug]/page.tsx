@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { InventorySkeleton, PriceSkeleton, ReviewsSkeleton } from '@/components/skeletons'
+import { AddToCartButton } from '@/components/add-to-cart-button'
 import { getProductDetail } from '@/lib/services'
 import { parseSectionSim } from '@/lib/sim-params'
 import { InventoryBadge, PricingPanel, ReviewsSection } from './sections'
@@ -47,6 +48,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <Suspense fallback={<InventorySkeleton />}>
           <InventoryBadge slug={slug} sim={sim.inventory} />
         </Suspense>
+        <AddToCartButton slug={slug} />
       </div>
       <section className="md:col-span-2">
         <h2 className="mb-3 text-xl font-semibold">Reviews</h2>
