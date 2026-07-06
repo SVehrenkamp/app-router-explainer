@@ -26,6 +26,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const sim = parseSectionSim(sp)
 
   const result = await getProductDetail(slug, sim.products)
+  // Nuance: because an ancestor loading.tsx already flushed the shell (200),
+  // notFound() here renders the 404 UI into the stream but CANNOT change the
+  // HTTP status code. Bots and monitoring must key off content, not status.
   if (!result) notFound()
   const product = result.data
 
