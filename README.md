@@ -30,3 +30,21 @@ npm run dev        # http://localhost:3000
 - Toggle **X-ray mode** (top right of the store) to see which parts of the tree
   are server vs client and when each streamed section resolved.
 - Click **</> Show me the code** on any page to read its annotated source.
+
+## The Boundary Journey
+
+The same PDP at four real migration stages — the team's boundary-pushing
+strategy, live:
+
+- **Stage 0** `/legacy/products/aurora-desk-lamp` — Pages Router,
+  `getInitialProps` + React Query (runs in the same app: coexistence works).
+- **Stage 1** `/journey/stage-1/products/aurora-desk-lamp` — App Router, one
+  `'use client'` at the top, React Query untouched.
+- **Stage 2** `/journey/stage-2/products/aurora-desk-lamp` — server shell,
+  `prefetchQuery` → `HydrationBoundary`, client islands.
+- **Stage 3** `/journey/stage-3/products/aurora-desk-lamp` — server-first
+  streaming with one cart island (the `/store` reference implementation).
+
+`/journey` compares all four with client-JS sizes measured from the build
+manifests (`yarn metrics` regenerates `lib/journey-metrics.generated.json`
+after a build).
