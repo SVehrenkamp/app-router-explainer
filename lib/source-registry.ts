@@ -22,6 +22,10 @@ export const SOURCE_FILES = {
     path: 'pages/legacy/search.tsx',
     title: 'Stage 0 — Pages Router search (full-reload form)',
   },
+  'journey-stage-1': {
+    path: 'components/journey/stage1-pdp.tsx',
+    title: "Stage 1 — one 'use client' at the top (React Query untouched)",
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES
