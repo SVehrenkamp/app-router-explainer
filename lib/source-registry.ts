@@ -38,6 +38,10 @@ export const SOURCE_FILES = {
     path: 'app/journey/page.tsx',
     title: 'Boundary Journey dashboard',
   },
+  'lab-boundary-explorer': {
+    path: 'components/labs/boundary-explorer.tsx',
+    title: 'Boundary Explorer — interactive boundary simulation',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES
