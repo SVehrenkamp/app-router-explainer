@@ -26,6 +26,13 @@ describe('services client', () => {
     expect(url).toContain('delay=0')
   })
 
+  it('appends fail=1 when fail is true', async () => {
+    const mock = stubFetch(200, {})
+    await getPricing('x', { fail: true })
+    const url = String(mock.mock.calls[0][0])
+    expect(url).toContain('fail=1')
+  })
+
   it('throws ServiceError on non-OK responses', async () => {
     stubFetch(503, { error: 'down' })
     await expect(getPricing('x')).rejects.toThrowError(ServiceError)
