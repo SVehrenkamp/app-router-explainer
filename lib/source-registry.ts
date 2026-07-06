@@ -42,6 +42,10 @@ export const SOURCE_FILES = {
     path: 'components/labs/boundary-explorer.tsx',
     title: 'Boundary Explorer — interactive boundary simulation',
   },
+  'lab-rsc-inspector': {
+    path: 'components/labs/rsc-inspector.tsx',
+    title: 'RSC Payload Inspector — annotated flight payloads',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES

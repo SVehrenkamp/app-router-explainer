@@ -26,3 +26,10 @@ test('boundary explorer recomputes cost and violations as the boundary moves', a
   await page.getByTestId('boundary-toggle-page').check()
   await expect(page.getByTestId('boundary-violations')).toContainText('async server component')
 })
+
+test('rsc inspector fetches and annotates a real flight payload', async ({ page }) => {
+  await page.goto('/labs/rsc-inspector')
+  await page.getByTestId('rsc-fetch').click()
+  await expect(page.getByTestId('rsc-total')).toContainText('bytes', { timeout: 15_000 })
+  expect(await page.getByTestId('rsc-row').count()).toBeGreaterThan(3)
+})
