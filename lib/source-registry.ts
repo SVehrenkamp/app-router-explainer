@@ -26,6 +26,10 @@ export const SOURCE_FILES = {
     path: 'components/journey/stage1-pdp.tsx',
     title: "Stage 1 — one 'use client' at the top (React Query untouched)",
   },
+  'journey-stage-2': {
+    path: 'app/journey/stage-2/products/[slug]/page.tsx',
+    title: 'Stage 2 — server shell + HydrationBoundary + client islands',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES

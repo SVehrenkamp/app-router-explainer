@@ -8,3 +8,15 @@ test('stage 1 renders the PDP from one big client component', async ({ page }) =
   await expect(page.getByText('Aurora Desk Lamp')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('xray-toggle')).toBeVisible()
 })
+
+test('stage 2 server-renders the shell and hydrates reviews without a client fetch', async ({ page }) => {
+  // Block the reviews service in the BROWSER: if reviews still render, they
+  // came from the server prefetch through the HydrationBoundary.
+  await page.route('**/api/services/reviews/**', (route) => route.abort())
+  await page.goto('/journey/stage-2/products/aurora-desk-lamp')
+  await expect(page.getByTestId('stage2-pdp')).toBeVisible()
+  await expect(page.getByText('Aurora Desk Lamp')).toBeVisible()
+  await expect(page.getByTestId('s2-reviews')).toBeVisible()
+  // Pricing island fetches client-side and still works.
+  await expect(page.getByTestId('s2-pricing-island')).toContainText('$', { timeout: 15_000 })
+})
