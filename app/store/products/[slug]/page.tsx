@@ -6,6 +6,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { InventorySkeleton, PriceSkeleton, ReviewsSkeleton } from '@/components/skeletons'
 import { AddToCartButton } from '@/components/add-to-cart-button'
+import { CodeButton } from '@/components/code-button'
 import { getProductDetail } from '@/lib/services'
 import { parseSectionSim } from '@/lib/sim-params'
 import { InventoryBadge, PricingPanel, ReviewsSection } from './sections'
@@ -40,7 +41,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </div>
       <div className="space-y-4">
         <div className="text-xs uppercase tracking-wide text-zinc-500">{product.category}</div>
-        <h1 className="text-3xl font-bold">{product.name}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">{product.name}</h1>
+          <CodeButton id="store-pdp" />
+        </div>
         <p className="text-zinc-600">{product.description}</p>
         <Suspense fallback={<PriceSkeleton />}>
           <PricingPanel slug={slug} sim={sim.pricing} />

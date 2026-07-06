@@ -5,6 +5,7 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { formatPrice } from '@/lib/format'
+import { CodeButton } from '@/components/code-button'
 import { CART_COOKIE, parseCart } from '@/lib/cart'
 import { getPricing, getProductDetail } from '@/lib/services'
 import { updateQuantity } from './actions'
@@ -46,7 +47,10 @@ export default async function CartPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">Cart</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Cart</h1>
+        <CodeButton id="cart-page" />
+      </div>
       <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white">
         {lines.map((line) => (
           <li key={line.item.slug} data-testid="cart-line" className="flex items-center gap-4 p-4">
