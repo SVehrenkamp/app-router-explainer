@@ -18,6 +18,10 @@ export const SOURCE_FILES = {
     path: 'pages/legacy/products/[slug].tsx',
     title: 'Stage 0 — Pages Router PDP (getInitialProps + React Query)',
   },
+  'legacy-search': {
+    path: 'pages/legacy/search.tsx',
+    title: 'Stage 0 — Pages Router search (full-reload form)',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES

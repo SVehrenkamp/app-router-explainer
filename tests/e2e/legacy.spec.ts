@@ -17,3 +17,14 @@ test('legacy PDP 404s politely on unknown slugs', async ({ page }) => {
   await page.goto('/legacy/products/nope')
   await expect(page.getByText('Product not found')).toBeVisible()
 })
+
+test('legacy search reads ?q= via getInitialProps and full-reloads on submit', async ({ page }) => {
+  await page.goto('/legacy/search?q=lamp')
+  await expect(page.getByTestId('legacy-search-results')).toBeVisible()
+  await expect(page.getByText('Aurora Desk Lamp')).toBeVisible()
+
+  await page.getByTestId('legacy-search-input').fill('mug')
+  await page.getByTestId('legacy-search-submit').click()
+  await page.waitForURL(/q=mug/)
+  await expect(page.getByText('Summit Trail Mug')).toBeVisible()
+})
