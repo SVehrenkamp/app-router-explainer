@@ -33,3 +33,16 @@ test('rsc inspector fetches and annotates a real flight payload', async ({ page 
   await expect(page.getByTestId('rsc-total')).toContainText('bytes', { timeout: 15_000 })
   expect(await page.getByTestId('rsc-row').count()).toBeGreaterThan(3)
 })
+
+test('cache lab fires probes, plots the timeline, and shows the CDN lens', async ({ page }) => {
+  await page.goto('/labs/cache-lab')
+  await page.getByTestId('cache-target-dynamic').click()
+  await page.getByTestId('cache-fire').click()
+  await page.getByTestId('cache-fire').click()
+  await expect(page.getByTestId('cache-sample')).toHaveCount(2, { timeout: 15_000 })
+  await expect(page.getByTestId('cdn-lens')).toContainText('no-store')
+  // Revalidate action responds without error (semantics differ under next dev —
+  // the UI notes this; the e2e only asserts the mechanism works).
+  await page.getByTestId('cache-revalidate-tag').click()
+  await expect(page.getByTestId('cache-lab-root')).toContainText('revalidated', { timeout: 10_000 })
+})
