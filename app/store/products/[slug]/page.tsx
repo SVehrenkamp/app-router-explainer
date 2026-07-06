@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation'
 import { InventorySkeleton, PriceSkeleton, ReviewsSkeleton } from '@/components/skeletons'
 import { AddToCartButton } from '@/components/add-to-cart-button'
 import { CodeButton } from '@/components/code-button'
+import { SectionErrorBoundary } from '@/components/section-error-boundary'
 import { getProductDetail } from '@/lib/services'
 import { parseSectionSim } from '@/lib/sim-params'
 import { InventoryBadge, PricingPanel, ReviewsSection } from './sections'
@@ -56,9 +57,17 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </div>
       <section className="md:col-span-2">
         <h2 className="mb-3 text-xl font-semibold">Reviews</h2>
-        <Suspense fallback={<ReviewsSkeleton />}>
-          <ReviewsSection slug={slug} sim={sim.reviews} />
-        </Suspense>
+        <SectionErrorBoundary
+          fallback={
+            <p data-testid="reviews-error" className="rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
+              Reviews are unavailable right now — the rest of the page is unaffected.
+            </p>
+          }
+        >
+          <Suspense fallback={<ReviewsSkeleton />}>
+            <ReviewsSection slug={slug} sim={sim.reviews} />
+          </Suspense>
+        </SectionErrorBoundary>
       </section>
     </article>
   )
