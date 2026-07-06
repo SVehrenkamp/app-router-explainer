@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "yarn snapshot && next dev",
-    "build": "yarn snapshot && NEXT_PRIVATE_STANDALONE=true next build && opennextjs-cloudflare build --skipNextBuild",
+    "build": "yarn snapshot && NEXT_PRIVATE_STANDALONE=true next build && yarn metrics && opennextjs-cloudflare build --skipNextBuild",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -13,7 +13,8 @@
     "deploy": "yarn build && opennextjs-cloudflare deploy",
     "upload": "yarn build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "snapshot": "node --experimental-strip-types scripts/snapshot-source.mts"
+    "snapshot": "node --experimental-strip-types scripts/snapshot-source.mts",
+    "metrics": "node scripts/journey-metrics.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "5.83.1",

@@ -1,6 +1,8 @@
 // The Boundary Journey's single source of truth. Each stage is a REAL route in
 // this repo; treeSplit counts are taken by reading that stage's source (they
 // feed the dashboard, so keep them honest when a stage's code changes).
+import type { SourceId } from '@/lib/source-registry'
+
 export type JourneyStage = {
   stage: 0 | 1 | 2 | 3
   title: string
@@ -8,7 +10,7 @@ export type JourneyStage = {
   summary: string
   router: 'pages' | 'app'
   pdpRoute: (slug: string) => string
-  sourceId: string
+  sourceId: SourceId
   treeSplit: { server: number; client: number }
 }
 

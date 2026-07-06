@@ -34,6 +34,10 @@ export const SOURCE_FILES = {
     path: 'app/journey/stage-3/products/[slug]/page.tsx',
     title: 'Stage 3 — server-first streaming PDP (the end state)',
   },
+  'journey-dashboard': {
+    path: 'app/journey/page.tsx',
+    title: 'Boundary Journey dashboard',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES

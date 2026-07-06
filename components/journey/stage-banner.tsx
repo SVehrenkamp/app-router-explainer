@@ -2,7 +2,6 @@
 // boundary sits, and the door into this stage's annotated source.
 import Link from 'next/link'
 import { CodeButton } from '@/components/code-button'
-import type { SourceId } from '@/lib/source-registry'
 import type { JourneyStage } from '@/lib/journey'
 
 export function StageBanner({ stage }: { stage: JourneyStage }) {
@@ -20,9 +19,7 @@ export function StageBanner({ stage }: { stage: JourneyStage }) {
         <Link href="/journey" className="text-sm text-violet-700 underline">
           Compare stages
         </Link>
-        {/* Stage source ids are registered in the task that creates each stage
-            file; the source-registry unit test pins that every id resolves. */}
-        <CodeButton id={stage.sourceId as SourceId} />
+        <CodeButton id={stage.sourceId} />
       </span>
     </div>
   )

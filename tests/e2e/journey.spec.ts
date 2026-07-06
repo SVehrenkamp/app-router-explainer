@@ -35,3 +35,11 @@ test('stage 3 streams sections server-first with a single cart island', async ({
   await expect(page.getByTestId('reviews-section')).toBeVisible({ timeout: 25_000 })
   await expect(page.getByTestId('add-to-cart')).toBeVisible()
 })
+
+test('journey dashboard lists all four stages with measured bundle sizes', async ({ page }) => {
+  await page.goto('/journey')
+  await expect(page.getByTestId('stage-card')).toHaveCount(4)
+  await expect(page.getByTestId('metrics-table')).toBeVisible()
+  await expect(page.getByTestId('metrics-table')).toContainText('KB')
+  await expect(page.getByTestId('stage-card').filter({ hasText: 'Stage 3' })).toBeVisible()
+})
