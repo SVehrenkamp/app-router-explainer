@@ -20,3 +20,18 @@ test('stage 2 server-renders the shell and hydrates reviews without a client fet
   // Pricing island fetches client-side and still works.
   await expect(page.getByTestId('s2-pricing-island')).toContainText('$', { timeout: 15_000 })
 })
+
+test('stage 3 streams sections server-first with a single cart island', async ({ page }) => {
+  // waitUntil: 'commit' — with streaming SSR, 'load' resolves only after the
+  // full stream (delayed reviews included), making the skeleton unobservable.
+  await page.goto(
+    '/journey/stage-3/products/aurora-desk-lamp?delay_products=0&delay_pricing=100&delay_inventory=100&delay_reviews=3000',
+    { waitUntil: 'commit' }
+  )
+  await expect(page.getByTestId('stage-banner')).toBeVisible()
+  await expect(page.getByText('Aurora Desk Lamp')).toBeVisible()
+  // Reviews are artificially slowed: the skeleton shows first, the section streams in later.
+  await expect(page.getByTestId('reviews-skeleton')).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByTestId('reviews-section')).toBeVisible({ timeout: 25_000 })
+  await expect(page.getByTestId('add-to-cart')).toBeVisible()
+})
