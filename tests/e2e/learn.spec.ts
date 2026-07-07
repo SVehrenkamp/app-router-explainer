@@ -27,3 +27,9 @@ test('modules 2 and 3 render with embeds, diffs, and drills', async ({ page }) =
   await page.goto('/learn/routing-layouts')
   await expect(page.getByText('What changes in Next 16')).toBeVisible()
 })
+
+test('landing page shows the pitch, stage strip, and 12-module path', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('link', { name: /Start module 1/i })).toBeVisible()
+  await expect(page.getByTestId('path-module')).toHaveCount(12)
+})
