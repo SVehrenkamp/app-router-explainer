@@ -50,6 +50,10 @@ export const SOURCE_FILES = {
     path: 'components/labs/cache-lab.tsx',
     title: 'Cache Lab — hit/miss timeline + CDN lens',
   },
+  'learn-drill-deck': {
+    path: 'components/learn/drill-deck.tsx',
+    title: 'DrillDeck — instant-feedback scenario cards',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES
