@@ -428,8 +428,51 @@ export const MODULES: CurriculumModule[] = [
     number: 9,
     title: 'Mutations: Server Actions & Route Handlers',
     summary: 'Add-to-cart both ways; useActionState; progressive enhancement.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm9-enhance',
+        type: 'predict',
+        prompt:
+          'A shopper on a slow connection clicks "Add to cart" before hydration finishes. The button is a <form action={serverAction}>. What happens?',
+        options: [
+          'Nothing — handlers need hydration',
+          'The form submits natively and the action runs — progressive enhancement is built in',
+          'The click queues and replays after hydration',
+        ],
+        answerIndex: 1,
+        explanation:
+          'A Server Action bound to a form action works as a real HTML form submission before any JS runs. useActionState then upgrades the experience (pending state, inline results) once hydrated — the baseline never breaks.',
+      },
+      {
+        id: 'm9-crossing',
+        type: 'server-or-client',
+        prompt:
+          'How does addToCart (a server function) end up callable from the AddToCartButton client component?',
+        options: [
+          'It is bundled into the client JS',
+          "It crosses the boundary as a reference — 'use server' functions are the one callable thing serialization allows",
+          'The client calls /api/cart under the hood, which you must define',
+        ],
+        answerIndex: 1,
+        explanation:
+          "Server Actions are serializable references to server-side functions. The client invokes the reference; Next routes the call. No handler file, no fetch wrapper — but it IS a network call underneath, so validate inputs like one.",
+      },
+      {
+        id: 'm9-bff',
+        type: 'predict',
+        prompt:
+          'The mobile team wants the same add-to-cart your web form uses. Server Action or route handler?',
+        options: [
+          'Server Action — they are just HTTP underneath',
+          'Route handler — Server Actions are a React-app protocol, not a public API surface',
+          'Either works equally well',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Server Actions are wired to the React tree (closures, redirects, cache revalidation) and their wire format is framework-internal. The moment a consumer is not this React app — mobile, partners, webhooks — you want a route handler: a stable, documented BFF endpoint over the microservices.',
+      },
+    ],
   },
   {
     slug: 'seo-metadata',

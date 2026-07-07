@@ -1,0 +1,79 @@
+# Mutations: Server Actions & Route Handlers
+
+The Pages Router gave mutations one shape: an `/api/*` handler plus a client fetch wrapper plus loading-state bookkeeping. The App Router gives you two tools with different jobs — and our cart implements the interesting one.
+
+## Server Actions: the mutation is a function call
+
+Add-to-cart in this repo is a `'use server'` function invoked from a form. No handler file, no fetch wrapper, no JSON envelope design:
+
+<CodeDiff before="pages/ — three files of plumbing" after="app/ — a function and a form">
+
+```tsx
+// pages/api/cart.ts
+export default async function handler(req, res) {
+  const { slug } = JSON.parse(req.body)
+  const cart = addItem(req.cookies.cart, slug)
+  res.setHeader('Set-Cookie', serialize(cart))
+  res.json({ count: cart.count })
+}
+
+// …plus the client wrapper:
+const addToCart = async (slug) => {
+  setPending(true)
+  const res = await fetch('/api/cart', {
+    method: 'POST',
+    body: JSON.stringify({ slug }),
+  })
+  setCount((await res.json()).count)
+  setPending(false)
+}
+```
+
+```tsx
+// app/store/cart/actions.ts
+'use server'
+export async function addToCart(
+  prev: CartActionState,
+  formData: FormData
+): Promise<CartActionState> {
+  const slug = String(formData.get('slug'))
+  // validates, writes the cookie, returns state
+}
+
+// The island wires it to UI state:
+const [state, formAction, isPending] =
+  useActionState(addToCart, initialState)
+return (
+  <form action={formAction}>
+    <input type="hidden" name="slug" value={slug} />
+    <button disabled={isPending}>Add to cart</button>
+  </form>
+)
+```
+
+</CodeDiff>
+
+Three things the new shape buys, all visible in the live cart:
+
+1. **Progressive enhancement for free.** The form submits natively before hydration; `useActionState` upgrades it to inline pending/result states once JS arrives. Throttle your connection and try it.
+2. **Typed boundary crossing.** The action is the one callable thing allowed across the server→client boundary (module 4's exception). It is still a network call underneath — validate `formData` like you would any request body.
+3. **Revalidation in the same breath.** Actions can call `revalidateTag`/`revalidatePath` so the mutation and its cache consequences live in one function — the Cache Lab's revalidate buttons are Server Actions doing exactly this.
+
+<ModuleEmbed href="/store/cart" title="The cart — Server Actions + a cookie, no API route">
+  Cookie-backed cart state, mutated by actions, read by a server component.
+  Add items from any PDP; the whole flow has zero custom fetch code.
+</ModuleEmbed>
+
+For optimistic UI, `useOptimistic` layers on the same action — render the expected cart count immediately, reconcile when the action settles. Reach for it when the mutation is fast and reversible; skip it when a failed write would strand misleading UI.
+
+## When route handlers remain the right tool
+
+Server Actions are a *React-app protocol* — their wire format is framework-internal and their superpowers (closures over rendered data, redirects, revalidation) assume this app is the caller. Keep BFF-style route handlers when:
+
+- **Another consumer exists** — mobile app, partner, webhook. They need a stable, documented endpoint (our mock microservices under `/api/services/*` model exactly this).
+- **The response is not UI state** — file streams, exports, redirects to third parties.
+- **You need HTTP semantics** — custom status codes, cache headers a CDN should see (module 7).
+
+The rule of thumb our stack lands on: **UI mutations → Server Actions; machine-facing surface → route handlers over the microservices.** Both coexist in this repo, on purpose.
+
+<DrillDeck module="mutations" />
