@@ -1,0 +1,72 @@
+# Caching & your CDN
+
+Four caches, one CDN in front of them, and two invalidation systems that do not talk to each other. This module is the map — and the discipline for keeping Next's caches and Fastly's honest with each other.
+
+## The four caches in 15.5
+
+| Cache | Lives | Holds | Invalidated by |
+| --- | --- | --- | --- |
+| Request memoization | one render pass | identical fetch results | automatic (per request) |
+| Data Cache | server, cross-request | individual fetch/unstable_cache results | `revalidate` time, `revalidateTag/Path` |
+| Full Route Cache | server, cross-request | rendered HTML + flight payload of static routes | redeploy, `revalidatePath`, segment config |
+| Router Cache | browser | visited route payloads | navigation heuristics, `router.refresh()` |
+
+The composition rule that explains most surprises: **decisions flow upward.** One `cache: 'no-store'` fetch makes the render request-bound, which opts the route out of the Full Route Cache. Our PDP is dynamic precisely because pricing and inventory are `no-store` — that's a choice, visible in `lib/services.ts`.
+
+## Watch them, don't trust them
+
+<ModuleEmbed href="/labs/cache-lab" title="Cache Lab — four configurations, live timeline">
+  Fire requests at force-static, force-dynamic, revalidate:10, and tagged
+  routes. A repeated generatedAt IS a cache hit — no header trust required.
+  Then hit the revalidate buttons and watch which layers actually flinch.
+</ModuleEmbed>
+
+## The Fastly interplay
+
+What your CDN sees is only the **emitted headers** — `Cache-Control` (and `CDN-Cache-Control` when you split browser vs edge policy). Next's tags, its Data Cache, its route cache: all invisible to Fastly.
+
+The consequence that bites teams: `revalidateTag` is **not a purge**. It marks Next's server-side copies stale; Fastly keeps serving its cached response until the header-declared TTL runs out. If a price fix must propagate immediately, you need *both* systems: revalidate the tag (Next) *and* purge the surrogate key (Fastly). Design the pairing up front — our mock services emit deliberate `s-maxage`/`stale-while-revalidate` values so the Cache Lab's CDN lens shows exactly what Fastly would key on.
+
+Streaming adds one more wrinkle: a streamed response begins flushing before slow sections resolve, so intermediaries see an early 200 and — depending on config — may cache a response whose tail streamed in. Static-with-revalidate routes cache cleanly at the CDN; dynamic streamed routes generally should not be CDN-cached at all (`private, no-store` — our pricing service's choice).
+
+## Where the old knowledge goes
+
+<CodeDiff before="pages/ — imperative headers in gSSP" after="app/ — declarative segment + fetch config">
+
+```tsx
+export async function getServerSideProps({ res }) {
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=300, stale-while-revalidate=600'
+  )
+  const data = await fetchCatalog()
+  return { props: { data } }
+}
+```
+
+```tsx
+// Route-level intent…
+export const revalidate = 300
+
+// …or per-fetch intent, with tags for
+// on-demand invalidation:
+const res = await fetch(url, {
+  next: { revalidate: 300, tags: ['products'] },
+})
+```
+
+</CodeDiff>
+
+## Dev lies about caching
+
+Several caches are disabled or altered under `next dev` — the site's amber banner exists because of this module. Verify caching against `next build && next start`, never against the dev server.
+
+<Next16Callout>
+  Next 16's Cache Components model replaces implicit route-level caching with the explicit
+  `'use cache'` directive plus `cacheLife` and `cacheTag`. The four-layer map above still
+  explains the runtime, but the authoring surface moves from segment config toward
+  per-function declarations — this module's diff is the part of the course most likely to
+  change shape.
+</Next16Callout>
+
+<DrillDeck module="caching-cdn" />

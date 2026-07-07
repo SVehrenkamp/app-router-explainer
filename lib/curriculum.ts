@@ -174,40 +174,254 @@ export const MODULES: CurriculumModule[] = [
     number: 4,
     title: 'Server Components & the client boundary',
     summary: "'use client' as an entry point; composition patterns; serialization.",
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm4-import',
+        type: 'spot-the-bug',
+        prompt:
+          "A 'use client' file imports PricingPanel (an async server component) and renders it. What happens?",
+        options: [
+          'It works — imports are imports',
+          'It breaks: importing it from a client file makes it client code, and async client components are invalid',
+          'Next silently renders it on the server anyway',
+        ],
+        answerIndex: 1,
+        explanation:
+          "The boundary follows the IMPORT graph, not the render tree. Importing anything from a 'use client' file drags it into the client bundle — an async component there is an error. Pass it as children instead.",
+      },
+      {
+        id: 'm4-children',
+        type: 'predict',
+        prompt:
+          'A client component receives <ReviewsSection /> (server) via its children prop and renders {children}. Does ReviewsSection ship to the browser?',
+        options: [
+          'Yes — anything a client component renders becomes client code',
+          'No — it rendered on the server; the client component receives its OUTPUT through the slot',
+          'Only its props ship',
+        ],
+        answerIndex: 1,
+        explanation:
+          'This is the composition workhorse: server children flow THROUGH client parents as already-rendered output. The client shell holds interactivity; the content costs zero client JS. It is how Providers wraps the whole app without dragging it client-side.',
+      },
+      {
+        id: 'm4-serialize',
+        type: 'server-or-client',
+        prompt:
+          'Which of these can legally cross from a server component into a client component as a prop?',
+        options: [
+          'A Date instance',
+          'A plain object with strings and numbers — or a Server Action',
+          'A class instance with methods',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Boundary props must survive serialization: JSON-safe values cross; Dates, Maps, class instances, and functions do not — except Server Actions, which cross as callable references by design.',
+      },
+    ],
   },
   {
     slug: 'hooks-client-patterns',
     number: 5,
     title: 'Hooks & client patterns',
     summary: 'next/navigation, useSearchParams bailouts, providers under a high boundary.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm5-router-import',
+        type: 'spot-the-bug',
+        prompt:
+          "A freshly-migrated app/ component imports useRouter from 'next/router' and calls router.query. What happens?",
+        options: [
+          'Works — the routers share an API',
+          'Runtime error: next/router only works in the Pages Router; app/ code uses next/navigation, and query moved to useSearchParams/params',
+          'It works but logs a deprecation warning',
+        ],
+        answerIndex: 1,
+        explanation:
+          "next/router throws outside pages/. In app/ the API splits: useRouter (navigation methods only), usePathname, useSearchParams, and route params via the params prop — router.query and router events are gone.",
+      },
+      {
+        id: 'm5-bailout',
+        type: 'predict',
+        prompt:
+          'A statically-rendered page renders a client component calling useSearchParams without a Suspense boundary above it. What does Next do?',
+        options: [
+          'Nothing special — search params are always available',
+          'It bails the whole page out to client-side rendering (and the build warns), because search params are unknowable at prerender time',
+          'It throws at build time',
+        ],
+        answerIndex: 1,
+        explanation:
+          'On a static page, useSearchParams cannot know its values at build — without a Suspense boundary to isolate it, the entire page deopts to CSR. Wrap the reading component in <Suspense> so only that island waits for the client.',
+      },
+      {
+        id: 'm5-provider',
+        type: 'server-or-client',
+        prompt:
+          'QueryClientProvider must wrap the whole app. Does that force the whole app to be client code?',
+        options: [
+          'Yes — providers at the top mean a client boundary at the top',
+          'No — the provider is a client component, but the app flows through it as server-rendered children',
+          'Only if any descendant calls useQuery',
+        ],
+        answerIndex: 1,
+        explanation:
+          'app/providers.tsx is exactly this: a thin client wrapper whose children remain server components. Context is readable by any client descendant, while everything else stays server-side. A high provider is fine; a high boundary is the thing to avoid.',
+      },
+    ],
   },
   {
     slug: 'data-fetching',
     number: 6,
     title: 'Data fetching',
     summary: 'getInitialProps → async server components; React Query coexistence per stage.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm6-memo',
+        type: 'predict',
+        prompt:
+          'generateMetadata and the page component both call getProductDetail(slug) with the same URL during one request. How many network calls happen?',
+        options: [
+          'Two — they are separate functions',
+          'One — request memoization dedupes identical fetches within a single render pass',
+          'Zero — metadata reads the page cache',
+        ],
+        answerIndex: 1,
+        explanation:
+          'fetch calls with the same URL and options are memoized per request in the App Router. That is why the real PDP fetches product data in generateMetadata AND the page body without paying twice — no manual plumbing.',
+      },
+      {
+        id: 'm6-waterfall',
+        type: 'spot-the-bug',
+        prompt:
+          'A server component does: const pricing = await getPricing(slug); const inventory = await getInventory(slug). What is wrong?',
+        options: [
+          'Nothing — server fetches are free',
+          'A sequential waterfall: inventory waits for pricing for no reason. Promise.all or separate Suspense sections fix it',
+          'Server components may only await one fetch',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Server-side fetching removes client waterfalls but you can still hand-build one with sequential awaits. Start independent requests together (Promise.all), or give each its own Suspense section so they stream independently — the stage-3 PDP does the latter.',
+      },
+      {
+        id: 'm6-stay-client',
+        type: 'server-or-client',
+        prompt:
+          'After migrating to server-first pages, which query rightfully STAYS in client-side React Query?',
+        options: [
+          'The product detail for the current page',
+          'Infinite-scroll pagination, polling, and mutations with optimistic UI',
+          'None — React Query is removed at stage 3',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Server components own initial page data; React Query keeps what is genuinely client-interactive: paginate-on-click (our PLP grid), polling, shared client caches, and mutation state. Coexistence is the end state, not a transition cost.',
+      },
+    ],
   },
   {
     slug: 'caching-cdn',
     number: 7,
     title: 'Caching & your CDN',
     summary: 'The four caches, revalidation, and the Fastly interplay.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm7-layers',
+        type: 'predict',
+        prompt:
+          "revalidateTag('products') runs after a catalog update. Which copies of the data become stale-and-refreshable?",
+        options: [
+          'Every copy everywhere, including what Fastly holds',
+          "Next's server-side caches (Data Cache / Full Route Cache entries using that tag) — Fastly's copy is untouched",
+          'Only the browser Router Cache',
+        ],
+        answerIndex: 1,
+        explanation:
+          "Tags are a Next-internal index; revalidateTag is not a surrogate-key purge. Fastly keeps serving its copy until the emitted Cache-Control expires (or you purge via Fastly's own API). Two systems, two invalidation stories — plan both.",
+      },
+      {
+        id: 'm7-nostore',
+        type: 'predict',
+        prompt:
+          "A server component uses fetch(url, { cache: 'no-store' }). What does that change for the ROUTE's cacheability?",
+        options: [
+          'Nothing — fetch options are local',
+          'The route becomes dynamically rendered: an uncached fetch is request-time work, so the Full Route Cache no longer applies',
+          'It only disables the browser cache',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Caching decisions compose upward: a no-store fetch marks the render as request-bound, which opts the route out of static prerendering. This is how our PDP stays dynamic — pricing and inventory are no-store by design.',
+      },
+      {
+        id: 'm7-dev',
+        type: 'spot-the-bug',
+        prompt:
+          'You verify caching behavior with `next dev`, see fresh data on every reload, and conclude revalidate:300 is broken. What went wrong?',
+        options: [
+          'Nothing — revalidate is broken in 15.5',
+          'Dev mode disables or alters several caches; only `next build && next start` shows production semantics',
+          'revalidate only works on Vercel',
+        ],
+        answerIndex: 1,
+        explanation:
+          'The dev server prioritizes freshness over cache fidelity — Full Route Cache and parts of the Data Cache behave differently. This site shows a dev-mode banner for exactly that reason. Always validate caching against a production build.',
+      },
+    ],
   },
   {
     slug: 'streaming-suspense',
     number: 8,
     title: 'Streaming, Suspense & loading UI',
     summary: 'Boundary placement, sequencing, and the PDP showcase.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm8-placement',
+        type: 'predict',
+        prompt:
+          'The PDP wraps pricing, inventory, and reviews in ONE shared Suspense boundary instead of three. Reviews takes 3s. What renders at t=0.5s?',
+        options: [
+          'Pricing and inventory, with a reviews skeleton',
+          'One combined skeleton — the shared boundary resolves only when ALL three finish',
+          'Nothing until hydration',
+        ],
+        answerIndex: 1,
+        explanation:
+          'A Suspense boundary resolves as a unit: its slowest child gates everything inside it. Per-section boundaries are why the stage-3 PDP shows price at half a second while reviews stream at three — boundary placement IS the streaming design.',
+      },
+      {
+        id: 'm8-loading',
+        type: 'server-or-client',
+        prompt: 'loading.tsx vs an inline <Suspense> — when do you reach for which?',
+        options: [
+          'They are interchangeable',
+          'loading.tsx = whole-page fallback on navigation; inline Suspense = per-section streaming within an already-visible page',
+          'loading.tsx only works for static routes',
+        ],
+        answerIndex: 1,
+        explanation:
+          'loading.tsx wraps the entire page segment — instant shell on navigation. Inline boundaries subdivide the page so independent data arrives independently. The PDP uses both: the route flushes via loading.tsx, then sections stream inside it.',
+      },
+      {
+        id: 'm8-notfound',
+        type: 'spot-the-bug',
+        prompt:
+          'Monitoring alerts on 404 rates for retired products, but the dashboard shows zero — while users clearly see the not-found page. Why?',
+        options: [
+          'The monitoring agent is broken',
+          'An ancestor loading.tsx flushed a 200 shell before notFound() ran — the 404 UI streams in, but the HTTP status was already sent',
+          'notFound() returns 500 in production',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Once streaming starts, the status code is spoken for. notFound() after the shell flush renders the right UI but cannot rewrite the 200. Bots and monitors must key off content (or the fetch must happen before the boundary) — a real SEO/observability gotcha.',
+      },
+    ],
   },
   {
     slug: 'mutations',

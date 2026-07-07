@@ -1,0 +1,69 @@
+# Hooks & client patterns
+
+Client components did not change — your hooks knowledge transfers wholesale. What changed is the *routing surface* they talk to, one sharp edge around `useSearchParams`, and where long-lived client state (providers, caches) should live in a server-first tree.
+
+## next/router → next/navigation
+
+The old `useRouter` was a kitchen sink. The new API splits it into focused hooks — and drops the parts that made `_app` re-render on every navigation:
+
+| Pages Router (`next/router`) | App Router (`next/navigation`) |
+| --- | --- |
+| `router.push / replace / back` | `useRouter().push / replace / back` |
+| `router.query` (params + search mixed) | `params` prop (route params) + `useSearchParams()` (query string) |
+| `router.pathname` | `usePathname()` |
+| `router.events` | gone — compose `usePathname` + `useSearchParams` in an effect |
+| `router.isReady` dance | gone — hooks resolve with real values |
+
+<CodeDiff before="pages/ — one hook, stringly mixed" after="app/ — focused hooks">
+
+```tsx
+import { useRouter } from 'next/router'
+
+function SearchBox() {
+  const router = useRouter()
+  // params and query arrive mixed together,
+  // and are empty until router.isReady.
+  const q = (router.query.q as string) ?? ''
+  const submit = (next: string) =>
+    router.push(`/search?q=${encodeURIComponent(next)}`)
+  …
+}
+```
+
+```tsx
+'use client'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+function SearchBox() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const q = searchParams.get('q') ?? ''
+  const submit = (next: string) =>
+    router.push(`/store/search?q=${encodeURIComponent(next)}`)
+  …
+}
+```
+
+</CodeDiff>
+
+## The useSearchParams bailout
+
+`useSearchParams` has a rule with teeth: on a statically-rendered route, a client component reading search params **can't know them at build time**. Without a `<Suspense>` boundary isolating that component, Next deopts the *entire page* to client-side rendering. The fix is never "make the page dynamic" by reflex — it's a boundary around the one component that reads the params.
+
+Our search page sidesteps this the server-first way: the **page** reads `searchParams` (which makes the route dynamic — correct for search) and the client `SearchBox` only *writes* the URL:
+
+<ModuleEmbed href="/store/search?q=lamp" title="Server-rendered search, client-enhanced box">
+  The results are server-rendered from searchParams; the SearchBox is a small
+  client island that pushes URL updates. Compare /legacy/search, where the same
+  feature costs a full page reload per query.
+</ModuleEmbed>
+
+## Providers under a high boundary
+
+The reflex from `_app` is "providers at the top" — and that instinct survives, with one correction: the provider is a *client wrapper*, not a *client boundary*. `app/providers.tsx` renders `{children}` straight through, so the tree inside stays server-rendered while any client island below can still `useQuery` or read context. High provider: fine. High boundary: the thing stage 1 of the journey exists to escape.
+
+## Third-party client libraries
+
+A library that calls hooks or touches `window` needs to live behind a `'use client'` file. If the package ships no directive itself, wrap it: one small file with `'use client'` that re-exports what you need. Your server components then pass data (or children) through the wrapper — same slot pattern as module 4.
+
+<DrillDeck module="hooks-client-patterns" />

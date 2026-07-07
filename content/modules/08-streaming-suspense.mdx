@@ -1,0 +1,66 @@
+# Streaming, Suspense & loading UI
+
+Streaming is the App Router feature our microservice architecture has been waiting for: four services with four latencies no longer means one page gated by the slowest. This module is about *placement* — where boundaries go, what each one costs, and the sharp edge around status codes.
+
+## The showcase, slowed down so you can watch it
+
+<ModuleEmbed href="/journey/stage-3/products/aurora-desk-lamp?delay_reviews=3000" title="Stage-3 PDP, reviews delayed to 3s">
+  Shell and product info flush immediately; price and stock arrive in
+  milliseconds; the reviews skeleton streams into place at 3s — and the page
+  never blocked. Toggle X-ray mode to see each section report when it resolved.
+</ModuleEmbed>
+
+## Two tools, two jobs
+
+**`loading.tsx`** is the route-level tool: an automatic Suspense boundary around the whole page. Navigation feels instant because the shell (layout + fallback) flushes before any page data resolves.
+
+**Inline `<Suspense>`** is the section-level tool: it subdivides a visible page so independent data arrives independently.
+
+<CodeDiff before="Route level — loading.tsx" after="Section level — inline boundaries">
+
+```tsx
+// app/store/loading.tsx
+// The whole page's fallback during
+// navigation. One boundary, page-sized.
+import { GridSkeleton } from '@/components/skeletons'
+
+export default function StoreLoading() {
+  return <GridSkeleton />
+}
+```
+
+```tsx
+// Inside the PDP — each section streams
+// alone; a slow service delays only itself.
+<Suspense fallback={<PriceSkeleton />}>
+  <PricingPanel slug={slug} />
+</Suspense>
+<Suspense fallback={<ReviewsSkeleton />}>
+  <ReviewsSection slug={slug} />
+</Suspense>
+```
+
+</CodeDiff>
+
+## Placement is the design
+
+A boundary resolves as a unit — its slowest child gates everything inside it. So boundaries encode product decisions:
+
+- **Group** what belongs together (price + promo badge: one boundary — a price without its promo is a lie).
+- **Isolate** what varies in latency (reviews: own boundary, slowest service on the page).
+- **Guard** what can fail independently: our reviews section sits inside a `SectionErrorBoundary` too — inject `?fail_reviews=1` and the section falls back while the page sells the product anyway.
+
+Sequencing note: boundaries stream in *resolution* order, not *source* order. If layout stability matters (it does — CLS), size your skeletons like the content they replace. Our skeletons are height-matched for exactly this reason.
+
+## The status-code sharp edge
+
+Streaming means the HTTP status is sent with the first flush. If `notFound()` fires *after* an ancestor `loading.tsx` already flushed a 200 shell, the user sees the 404 UI — but the response says 200. Bots and monitoring must key off content, or the existence check must happen before anything flushes. This inverts a Pages Router instinct (where `getServerSideProps` could always set the status) and it is the price of instant shells. The PDP carries a comment about this exact nuance — read it via **Show me the code**.
+
+<Next16Callout>
+  Partial Prerendering (PPR) formalizes what this module hand-builds: a static shell
+  prerendered at build time with dynamic holes streamed per-request — the same Suspense
+  boundaries become the seam between cached and dynamic content. Boundary placement skills
+  from this module transfer directly.
+</Next16Callout>
+
+<DrillDeck module="streaming-suspense" />
