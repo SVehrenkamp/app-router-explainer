@@ -8,8 +8,8 @@ describe('curriculum registry', () => {
     expect(MODULES.map((m) => m.number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
   })
 
-  it('modules 1-3 are available with at least 3 valid drills each', () => {
-    for (const m of MODULES.slice(0, 3)) {
+  it('modules 1-8 are available with at least 3 valid drills each', () => {
+    for (const m of MODULES.slice(0, 8)) {
       expect(m.status).toBe('available')
       expect(m.drills.length).toBeGreaterThanOrEqual(3)
       for (const d of m.drills) {
@@ -20,8 +20,8 @@ describe('curriculum registry', () => {
     }
   })
 
-  it('modules 4-12 are planned with no drills yet', () => {
-    for (const m of MODULES.slice(3)) {
+  it('modules 9-12 are planned with no drills yet', () => {
+    for (const m of MODULES.slice(8)) {
       expect(m.status).toBe('planned')
       expect(m.drills).toEqual([])
     }
