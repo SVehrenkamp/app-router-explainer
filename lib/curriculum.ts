@@ -225,8 +225,51 @@ export const MODULES: CurriculumModule[] = [
     number: 5,
     title: 'Hooks & client patterns',
     summary: 'next/navigation, useSearchParams bailouts, providers under a high boundary.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm5-router-import',
+        type: 'spot-the-bug',
+        prompt:
+          "A freshly-migrated app/ component imports useRouter from 'next/router' and calls router.query. What happens?",
+        options: [
+          'Works — the routers share an API',
+          'Runtime error: next/router only works in the Pages Router; app/ code uses next/navigation, and query moved to useSearchParams/params',
+          'It works but logs a deprecation warning',
+        ],
+        answerIndex: 1,
+        explanation:
+          "next/router throws outside pages/. In app/ the API splits: useRouter (navigation methods only), usePathname, useSearchParams, and route params via the params prop — router.query and router events are gone.",
+      },
+      {
+        id: 'm5-bailout',
+        type: 'predict',
+        prompt:
+          'A statically-rendered page renders a client component calling useSearchParams without a Suspense boundary above it. What does Next do?',
+        options: [
+          'Nothing special — search params are always available',
+          'It bails the whole page out to client-side rendering (and the build warns), because search params are unknowable at prerender time',
+          'It throws at build time',
+        ],
+        answerIndex: 1,
+        explanation:
+          'On a static page, useSearchParams cannot know its values at build — without a Suspense boundary to isolate it, the entire page deopts to CSR. Wrap the reading component in <Suspense> so only that island waits for the client.',
+      },
+      {
+        id: 'm5-provider',
+        type: 'server-or-client',
+        prompt:
+          'QueryClientProvider must wrap the whole app. Does that force the whole app to be client code?',
+        options: [
+          'Yes — providers at the top mean a client boundary at the top',
+          'No — the provider is a client component, but the app flows through it as server-rendered children',
+          'Only if any descendant calls useQuery',
+        ],
+        answerIndex: 1,
+        explanation:
+          'app/providers.tsx is exactly this: a thin client wrapper whose children remain server components. Context is readable by any client descendant, while everything else stays server-side. A high provider is fine; a high boundary is the thing to avoid.',
+      },
+    ],
   },
   {
     slug: 'data-fetching',

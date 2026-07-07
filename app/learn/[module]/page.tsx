@@ -10,6 +10,7 @@ const CONTENT: Record<string, () => Promise<{ default: ComponentType }>> = {
   'mental-model': () => import('@/content/modules/02-mental-model.mdx'),
   'routing-layouts': () => import('@/content/modules/03-routing-layouts.mdx'),
   'server-components-boundary': () => import('@/content/modules/04-server-components-boundary.mdx'),
+  'hooks-client-patterns': () => import('@/content/modules/05-hooks-client-patterns.mdx'),
 }
 
 export function generateStaticParams() {
