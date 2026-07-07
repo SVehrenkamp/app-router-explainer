@@ -327,8 +327,51 @@ export const MODULES: CurriculumModule[] = [
     number: 7,
     title: 'Caching & your CDN',
     summary: 'The four caches, revalidation, and the Fastly interplay.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm7-layers',
+        type: 'predict',
+        prompt:
+          "revalidateTag('products') runs after a catalog update. Which copies of the data become stale-and-refreshable?",
+        options: [
+          'Every copy everywhere, including what Fastly holds',
+          "Next's server-side caches (Data Cache / Full Route Cache entries using that tag) — Fastly's copy is untouched",
+          'Only the browser Router Cache',
+        ],
+        answerIndex: 1,
+        explanation:
+          "Tags are a Next-internal index; revalidateTag is not a surrogate-key purge. Fastly keeps serving its copy until the emitted Cache-Control expires (or you purge via Fastly's own API). Two systems, two invalidation stories — plan both.",
+      },
+      {
+        id: 'm7-nostore',
+        type: 'predict',
+        prompt:
+          "A server component uses fetch(url, { cache: 'no-store' }). What does that change for the ROUTE's cacheability?",
+        options: [
+          'Nothing — fetch options are local',
+          'The route becomes dynamically rendered: an uncached fetch is request-time work, so the Full Route Cache no longer applies',
+          'It only disables the browser cache',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Caching decisions compose upward: a no-store fetch marks the render as request-bound, which opts the route out of static prerendering. This is how our PDP stays dynamic — pricing and inventory are no-store by design.',
+      },
+      {
+        id: 'm7-dev',
+        type: 'spot-the-bug',
+        prompt:
+          'You verify caching behavior with `next dev`, see fresh data on every reload, and conclude revalidate:300 is broken. What went wrong?',
+        options: [
+          'Nothing — revalidate is broken in 15.5',
+          'Dev mode disables or alters several caches; only `next build && next start` shows production semantics',
+          'revalidate only works on Vercel',
+        ],
+        answerIndex: 1,
+        explanation:
+          'The dev server prioritizes freshness over cache fidelity — Full Route Cache and parts of the Data Cache behave differently. This site shows a dev-mode banner for exactly that reason. Always validate caching against a production build.',
+      },
+    ],
   },
   {
     slug: 'streaming-suspense',
