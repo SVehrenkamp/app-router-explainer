@@ -1,0 +1,74 @@
+# Server Components & the client boundary
+
+Module 2 gave you the mental model: a tree split across two environments. This module is the mechanics of the split itself — what `'use client'` actually does, why the *import graph* (not the render tree) decides what ships, and the one composition pattern that makes large-scale boundary-pushing possible.
+
+## 'use client' follows imports, not JSX
+
+The directive does not mark a component. It marks a **module boundary**: this file, and *everything it imports*, belongs to the client bundle. That transitive rule is where migrations go wrong — one convenience import in a client file can drag a formatter, a data client, or an entire server component across the boundary.
+
+Two consequences worth tattooing somewhere:
+
+- A server component **imported by** a client file stops being a server component. If it was `async`, the build breaks; if it merely imported heavy server code, your bundle quietly grows.
+- The poison pill works the other way too: `lib/services.ts` imports `server-only`, so any client file that touches it fails the build with a readable error instead of leaking data plumbing into the browser.
+
+## The composition workhorse: server children through client parents
+
+You cannot import server code *into* a client file — but a client component can **receive already-rendered server output** through `children` (or any prop slot). The client shell owns interactivity; the server content flows through it untouched:
+
+<CodeDiff before="❌ Importing across the boundary" after="✅ Passing through the slot">
+
+```tsx
+'use client'
+// This IMPORT makes ReviewsSection client
+// code. It is async ⇒ build error; even if
+// it weren't, its service client would ship.
+import { ReviewsSection } from './sections'
+
+export function Collapsible({ slug }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div>
+      <button onClick={() => setOpen(!open)}>toggle</button>
+      {open && <ReviewsSection slug={slug} />}
+    </div>
+  )
+}
+```
+
+```tsx
+'use client'
+// No server imports. The server parent renders
+// <Collapsible><ReviewsSection … /></Collapsible>
+// and the section arrives here as OUTPUT.
+export function Collapsible({ children }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div>
+      <button onClick={() => setOpen(!open)}>toggle</button>
+      {open && children}
+    </div>
+  )
+}
+```
+
+</CodeDiff>
+
+This is exactly how `app/providers.tsx` works: a client `QueryClientProvider` wraps the entire app, yet the app stays overwhelmingly server-rendered — everything flows through as children.
+
+## Serialization: the boundary's customs check
+
+Props crossing server → client are serialized into the flight payload. JSON-safe values pass. `Date`, `Map`, `Set`, class instances, and functions do not — with one deliberate exception: **Server Actions** cross as callable references, which is what makes the add-to-cart island possible.
+
+When the Boundary Explorer flags a violation, it is enforcing these exact rules:
+
+<ModuleEmbed href="/labs/boundary-explorer" title="Boundary Explorer — try the stage-2 preset">
+  The stage-2 preset deliberately reproduces a classic mistake: marking async
+  server components (pricing, inventory) as client islands. Watch the tool flag
+  async-under-client, then fix the placement and watch the violations clear.
+</ModuleEmbed>
+
+## Where to put the boundary, in practice
+
+Default server; go client at the *smallest subtree* that needs state, effects, or browser APIs. When a mid-tree component wants both — interactive shell, heavy content — split it: client shell, server children through the slot. That single refactor is most of what "pushing the boundary down" means day-to-day.
+
+<DrillDeck module="server-components-boundary" />

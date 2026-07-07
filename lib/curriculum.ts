@@ -174,8 +174,51 @@ export const MODULES: CurriculumModule[] = [
     number: 4,
     title: 'Server Components & the client boundary',
     summary: "'use client' as an entry point; composition patterns; serialization.",
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm4-import',
+        type: 'spot-the-bug',
+        prompt:
+          "A 'use client' file imports PricingPanel (an async server component) and renders it. What happens?",
+        options: [
+          'It works — imports are imports',
+          'It breaks: importing it from a client file makes it client code, and async client components are invalid',
+          'Next silently renders it on the server anyway',
+        ],
+        answerIndex: 1,
+        explanation:
+          "The boundary follows the IMPORT graph, not the render tree. Importing anything from a 'use client' file drags it into the client bundle — an async component there is an error. Pass it as children instead.",
+      },
+      {
+        id: 'm4-children',
+        type: 'predict',
+        prompt:
+          'A client component receives <ReviewsSection /> (server) via its children prop and renders {children}. Does ReviewsSection ship to the browser?',
+        options: [
+          'Yes — anything a client component renders becomes client code',
+          'No — it rendered on the server; the client component receives its OUTPUT through the slot',
+          'Only its props ship',
+        ],
+        answerIndex: 1,
+        explanation:
+          'This is the composition workhorse: server children flow THROUGH client parents as already-rendered output. The client shell holds interactivity; the content costs zero client JS. It is how Providers wraps the whole app without dragging it client-side.',
+      },
+      {
+        id: 'm4-serialize',
+        type: 'server-or-client',
+        prompt:
+          'Which of these can legally cross from a server component into a client component as a prop?',
+        options: [
+          'A Date instance',
+          'A plain object with strings and numbers — or a Server Action',
+          'A class instance with methods',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Boundary props must survive serialization: JSON-safe values cross; Dates, Maps, class instances, and functions do not — except Server Actions, which cross as callable references by design.',
+      },
+    ],
   },
   {
     slug: 'hooks-client-patterns',
