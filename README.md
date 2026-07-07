@@ -48,3 +48,13 @@ strategy, live:
 `/journey` compares all four with client-JS sizes measured from the build
 manifests (`yarn metrics` regenerates `lib/journey-metrics.generated.json`
 after a build).
+
+## Labs
+
+- **`/labs/boundary-explorer`** — toggle `'use client'` on the real PDP tree;
+  watch client JS and violations recompute (module 4's interactive half).
+- **`/labs/cache-lab`** — fire requests at static / dynamic / revalidating /
+  tagged routes; hit/miss timeline + the headers your CDN would see. For real
+  cache semantics run `next build && next start` (dev disables several caches).
+- **`/labs/rsc-inspector`** — fetch a route's flight payload with `RSC: 1`
+  and read it annotated.

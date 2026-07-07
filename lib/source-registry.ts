@@ -38,6 +38,18 @@ export const SOURCE_FILES = {
     path: 'app/journey/page.tsx',
     title: 'Boundary Journey dashboard',
   },
+  'lab-boundary-explorer': {
+    path: 'components/labs/boundary-explorer.tsx',
+    title: 'Boundary Explorer — interactive boundary simulation',
+  },
+  'lab-rsc-inspector': {
+    path: 'components/labs/rsc-inspector.tsx',
+    title: 'RSC Payload Inspector — annotated flight payloads',
+  },
+  'lab-cache-lab': {
+    path: 'components/labs/cache-lab.tsx',
+    title: 'Cache Lab — hit/miss timeline + CDN lens',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES
