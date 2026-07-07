@@ -1,0 +1,71 @@
+# SEO, metadata & bot rendering
+
+Our current stack treats SEO as a special mode: UA-sniff the bots, server-render for them, hydrate everything for humans, and keep `next/head` tags in sync by hand. The App Router deletes the special mode. This module covers the new metadata API, what streaming means for crawlers, and where structured data goes.
+
+## generateMetadata: metadata is data
+
+Head tags stop being JSX you remember to render and become a typed export the framework owns:
+
+<CodeDiff before="pages/ — next/head in the component" after="app/ — a metadata export">
+
+```tsx
+import Head from 'next/head'
+
+function ProductPage({ product }) {
+  return (
+    <>
+      <Head>
+        <title>{`${product.name} · Fieldgoods`}</title>
+        <meta property="og:image" content={product.image} />
+      </Head>
+      <article>…</article>
+    </>
+  )
+}
+// Duplicated patterns per page; nothing
+// stops two pages from disagreeing.
+```
+
+```tsx
+export async function generateMetadata({ params }) {
+  const { slug } = await params
+  const result = await getProductDetail(slug)
+  return { title: result ? result.data.name : 'Not found' }
+}
+// The root layout owns the template:
+// title: { default: '…', template: '%s · App Router Field Guide' }
+```
+
+</CodeDiff>
+
+Two mechanics worth internalizing, both live in this repo:
+
+- **Templates compose down the tree.** The root layout declares `title.template`; every page supplies just its own part. Consistency stops being a code-review concern.
+- **Metadata fetches are free-ish.** The PDP's `generateMetadata` and page body both call `getProductDetail(slug)` — request memoization (module 6) makes that one service call. But metadata *is awaited before the first flush*, so a slow metadata fetch delays first byte for the whole page: keep it on the fast path.
+
+<ModuleEmbed href="/journey/stage-3/products/aurora-desk-lamp" title="View source on the PDP">
+  Right-click → view source: the title, description, and product info are in
+  the initial HTML — no hydration required. That HTML is exactly what a
+  crawler receives.
+</ModuleEmbed>
+
+## Streaming and bots
+
+The order of operations answers most crawler questions: `generateMetadata` resolves → `<head>` and shell flush → Suspense sections stream. So meta tags are **never** streamed in late. What streams late is *content* — which is why boundary placement (module 8) is also an SEO decision: put the product name and description in the shell, not behind the slow reviews boundary.
+
+The one genuine trap carries over from module 8: after the shell flushes a 200, `notFound()` cannot change the status code. For retired-product pages a crawler must key off content — or the existence check must run before anything flushes (fetch the product in the page, not only inside a boundary).
+
+## The inversion
+
+The old pattern — SSR for bots, CSR for humans — existed because server rendering was expensive and bolted on. In the App Router everything server-renders by default, so the bot path *is* the human path. Retire the UA-sniffing, and with it the class of bugs where bots and users saw different pages.
+
+## Structured data
+
+JSON-LD is just JSON a server component renders — derive it from the same fetch that renders the page (memoization again) and it can never drift from the visible price:
+
+```tsx
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Product', name: product.name }
+return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+```
+
+<DrillDeck module="seo-metadata" />

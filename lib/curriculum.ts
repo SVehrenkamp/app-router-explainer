@@ -479,8 +479,51 @@ export const MODULES: CurriculumModule[] = [
     number: 10,
     title: 'SEO, metadata & bot rendering',
     summary: 'generateMetadata; streaming and bots; structured data.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm10-dedupe',
+        type: 'predict',
+        prompt:
+          'generateMetadata fetches the product to build the title, and the page fetches it again to render. Cost?',
+        options: [
+          'Double fetch — hoist the data to avoid it',
+          'One fetch — request memoization dedupes them within the render pass',
+          'Metadata renders after the page and reuses its props',
+        ],
+        answerIndex: 1,
+        explanation:
+          'This is the pattern the real PDP uses: both call getProductDetail(slug); memoization collapses them into a single service call. Metadata gets to be data-driven without a data-plumbing tax.',
+      },
+      {
+        id: 'm10-inversion',
+        type: 'predict',
+        prompt:
+          "The team's old pattern was SSR-for-bots-only (UA-sniffing to decide when to render on the server). What replaces it in the App Router?",
+        options: [
+          'The same pattern, using middleware to sniff bots',
+          'Nothing to replace — everything server-renders by default; bots and humans get the same HTML',
+          'generateStaticParams for bot-visited routes',
+        ],
+        answerIndex: 1,
+        explanation:
+          'The economics inverted: server rendering is the default, not an expensive special case. Bot cloaking machinery (and its consistency bugs) simply retires — one render path serves everyone.',
+      },
+      {
+        id: 'm10-blocking',
+        type: 'spot-the-bug',
+        prompt:
+          'A crawler needs the og:image of a streamed PDP whose metadata depends on the product fetch. Does streaming send <head> before metadata resolves?',
+        options: [
+          'Yes — streaming always flushes head immediately, so bots may miss tags',
+          'No — Next blocks the head flush on generateMetadata, so tags are complete; only body sections stream',
+          'Only if you set metadataBase',
+        ],
+        answerIndex: 1,
+        explanation:
+          'generateMetadata is awaited before the shell flushes — meta tags are never streamed in late. The status-code gotcha (module 8) is about notFound() AFTER flush; metadata itself is safe by construction. Keep metadata fetches fast: they gate first byte.',
+      },
+    ],
   },
   {
     slug: 'boundary-journey',

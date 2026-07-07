@@ -15,6 +15,7 @@ const CONTENT: Record<string, () => Promise<{ default: ComponentType }>> = {
   'caching-cdn': () => import('@/content/modules/07-caching-cdn.mdx'),
   'streaming-suspense': () => import('@/content/modules/08-streaming-suspense.mdx'),
   'mutations': () => import('@/content/modules/09-mutations.mdx'),
+  'seo-metadata': () => import('@/content/modules/10-seo-metadata.mdx'),
 }
 
 export function generateStaticParams() {
