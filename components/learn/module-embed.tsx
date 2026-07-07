@@ -13,14 +13,23 @@ export function ModuleEmbed({
   children?: React.ReactNode
 }) {
   return (
-    <div className="my-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
-      <div className="mb-1 flex items-center justify-between gap-4">
-        <span className="text-sm font-semibold text-violet-900">{title}</span>
-        <Link href={href} className="shrink-0 text-sm font-medium text-violet-700 underline">
-          open live ↗
-        </Link>
+    <div className="group relative my-8 max-w-[70ch] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition hover:shadow-md">
+      <div className="seam h-[3px] w-full" />
+      <div className="p-5">
+        <div className="mb-1.5 flex items-center justify-between gap-4">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.15em] text-zinc-500">
+            Live demo
+          </span>
+          <Link
+            href={href}
+            className="shrink-0 text-sm font-medium text-indigo-600 underline decoration-indigo-300 underline-offset-4 transition group-hover:decoration-indigo-600"
+          >
+            open live ↗
+          </Link>
+        </div>
+        <div className="font-display text-lg font-semibold tracking-tight">{title}</div>
+        <div className="mt-1 text-sm leading-relaxed text-zinc-600">{children}</div>
       </div>
-      <div className="text-sm text-zinc-600">{children}</div>
     </div>
   )
 }

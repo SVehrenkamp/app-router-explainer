@@ -28,14 +28,14 @@ export const metadata = { title: 'Labs' }
 export default function LabsPage() {
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-bold">Labs</h1>
+      <h1 className="font-display text-4xl font-bold tracking-tight">Labs</h1>
       <div className="grid gap-4 md:grid-cols-3">
         {LABS.map((lab) => (
           <Link
             key={lab.href}
             href={lab.href}
             data-testid="lab-card"
-            className="rounded-xl border border-zinc-200 bg-white p-5 transition hover:shadow-md"
+            className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="mb-1 font-medium">{lab.title}</div>
             <p className="text-sm text-zinc-600">{lab.blurb}</p>

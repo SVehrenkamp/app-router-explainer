@@ -13,7 +13,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <div>
         <DevModeBanner />
         <header className="mb-6 flex items-center gap-6 border-b border-zinc-200 pb-4">
-          <Link href="/store" className="text-xl font-semibold">
+          <Link href="/store" className="font-display text-xl font-bold tracking-tight">
             Fieldgoods
           </Link>
           <Link href="/store/search" className="text-sm text-zinc-600 hover:text-zinc-900">

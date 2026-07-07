@@ -10,7 +10,7 @@ export default function BoundaryExplorerPage() {
     <section className="space-y-6">
       <div className="flex items-start justify-between">
         <div className="max-w-2xl space-y-2">
-          <h1 className="text-3xl font-bold">Boundary Explorer</h1>
+          <h1 className="font-display text-4xl font-bold tracking-tight">Boundary Explorer</h1>
           <p className="text-zinc-600">
             The stage-3 PDP as a component tree. Check &apos;use client&apos; on any node to move
             the boundary; the panel recomputes shipped client JS and flags exactly what breaks.

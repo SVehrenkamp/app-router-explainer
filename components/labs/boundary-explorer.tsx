@@ -26,7 +26,7 @@ function NodeRow({
       <div
         data-testid={`boundary-node-${node.id}`}
         className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
-          isClient ? 'bg-sky-50 text-sky-900' : 'bg-emerald-50 text-emerald-900'
+          isClient ? 'bg-indigo-50 text-indigo-950' : 'bg-teal-50 text-teal-950'
         }`}
         style={{ marginLeft: depth * 20 }}
       >
@@ -48,7 +48,7 @@ function NodeRow({
               : ''}{' '}
           · {node.kb}KB
         </span>
-        <span className="rounded px-1.5 py-0.5 text-xs font-semibold uppercase">
+        <span className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${isClient ? "bg-indigo-600/10 text-indigo-700" : "bg-teal-700/10 text-teal-800"}`}>
           {isClient ? 'client' : 'server'}
         </span>
       </div>
@@ -89,7 +89,7 @@ export function BoundaryExplorer() {
               key={preset}
               data-testid={`preset-${preset}`}
               onClick={() => setClientRoots(new Set(STAGE_PRESETS[preset]))}
-              className="rounded-lg border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-100"
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 font-mono text-xs shadow-xs transition hover:border-zinc-500"
             >
               {preset.replace('-', ' ')}
             </button>
@@ -104,9 +104,9 @@ export function BoundaryExplorer() {
         />
       </div>
       <aside className="space-y-4">
-        <div className="rounded-xl border border-zinc-200 bg-white p-4">
-          <div className="text-xs uppercase tracking-wide text-zinc-500">Estimated client JS</div>
-          <div data-testid="boundary-kb" className="text-3xl font-bold">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">Estimated client JS</div>
+          <div data-testid="boundary-kb" className="figures text-4xl font-bold">
             {result.clientKB}
           </div>
           <div className="text-xs text-zinc-500">
@@ -115,11 +115,11 @@ export function BoundaryExplorer() {
         </div>
         <div
           data-testid="boundary-violations"
-          className="rounded-xl border border-zinc-200 bg-white p-4 text-sm"
+          className="rounded-2xl border border-zinc-200 bg-white p-5 text-sm shadow-xs"
         >
-          <div className="mb-2 text-xs uppercase tracking-wide text-zinc-500">What breaks</div>
+          <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500">What breaks</div>
           {result.violations.length === 0 ? (
-            <p className="text-emerald-700">No violations — this boundary placement is legal.</p>
+            <p className="font-medium text-teal-700">No violations — this boundary placement is legal.</p>
           ) : (
             <ul className="space-y-2">
               {result.violations.map((v, i) => (

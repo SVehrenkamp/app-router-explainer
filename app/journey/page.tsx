@@ -13,7 +13,7 @@ export default function JourneyPage() {
     <section className="space-y-8">
       <div className="flex items-start justify-between">
         <div className="max-w-2xl space-y-2">
-          <h1 className="text-3xl font-bold">The Boundary Journey</h1>
+          <h1 className="font-display text-4xl font-bold tracking-tight">The Boundary Journey</h1>
           <p className="text-zinc-600">
             The same product page at four real migration stages. Start with the client
             boundary at the top — everything works, nothing improves — then push it down
@@ -29,14 +29,14 @@ export default function JourneyPage() {
             key={stage.stage}
             href={stage.pdpRoute(DEMO_SLUG)}
             data-testid="stage-card"
-            className="rounded-xl border border-zinc-200 bg-white p-5 transition hover:shadow-md"
+            className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="mb-1 flex items-center gap-2">
-              <span className="rounded bg-violet-600 px-2 py-0.5 text-xs font-semibold text-white">
+              <span className="seam rounded-md px-2 py-0.5 font-mono text-xs font-semibold text-white">
                 Stage {stage.stage}
               </span>
               <span className="font-medium">{stage.title}</span>
-              <span className="ml-auto rounded bg-zinc-100 px-2 py-0.5 font-mono text-xs">
+              <span className="ml-auto rounded-full bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-500">
                 {stage.router}/
               </span>
             </div>
@@ -46,7 +46,7 @@ export default function JourneyPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Measured, not asserted</h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight">Measured, not asserted</h2>
         <MetricsTable />
         <p className="text-sm text-zinc-600">
           Hydration cost and RSC payload size get live instruments instead of estimates —

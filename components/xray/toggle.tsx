@@ -9,7 +9,7 @@ export function XrayToggle() {
       onClick={toggle}
       data-testid="xray-toggle"
       className={`rounded-full border px-3 py-1 text-xs font-medium ${
-        enabled ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-300 text-zinc-600'
+        enabled ? 'seam border-transparent text-white shadow-sm' : 'border-zinc-300 bg-white text-zinc-600 hover:border-zinc-500'
       }`}
     >
       X-ray {enabled ? 'on' : 'off'}
