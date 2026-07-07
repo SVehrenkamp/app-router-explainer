@@ -1,0 +1,80 @@
+# Routing, layouts & file conventions
+
+The file conventions are the App Router's API. This module is the translation table from the world you know, plus the three conventions with no Pages Router equivalent at all.
+
+## The mapping table
+
+| Pages Router | App Router | What changes |
+| --- | --- | --- |
+| `_app.tsx` + `_document.tsx` | `app/layout.tsx` (root layout) | One server component renders `<html>/<body>` and wraps every route; it does NOT re-render on navigation |
+| `pages/index.tsx` | `app/page.tsx` | Pages are the leaf; layouts compose around them |
+| `pages/api/*` | route handlers (`route.ts`) | Same job, Web `Request`/`Response` types |
+| `next/router` | `next/navigation` | `useRouter` shrinks; `usePathname`/`useSearchParams` are their own hooks |
+| `_error.tsx` / `404.tsx` | `error.tsx` / `not-found.tsx` | Per-segment, component-scoped, with reset semantics |
+| — | `loading.tsx` | An automatic Suspense boundary around the page — no Pages equivalent |
+
+This repo contains both worlds — the mapping is diffable directly:
+
+<CodeDiff before="pages/_app.tsx (the old shared shell)" after="app/layout.tsx + app/providers.tsx">
+
+```tsx
+// Re-renders on EVERY navigation. Global
+// CSS may only be imported here. Providers,
+// chrome, and analytics all crowd into one file.
+export default function LegacyApp({ Component, pageProps }) {
+  const [queryClient] = useState(() => new QueryClient())
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Component {...pageProps} />
+    </QueryClientProvider>
+  )
+}
+```
+
+```tsx
+// Server component; renders once and persists.
+// The provider survives as a small client child —
+// a server parent may freely render client children.
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <nav>…</nav>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+</CodeDiff>
+
+## Layout persistence is state persistence
+
+A nested layout (`app/store/layout.tsx`) stays mounted while `/store/*` pages swap beneath it. That is why X-ray mode's provider lives in the layout: toggle it on the PLP, navigate to a PDP, and the overlay state survives. `_app` could never promise that — it re-ran every time.
+
+<ModuleEmbed href="/store" title="Feel the difference: store vs legacy navigation">
+  Navigate between store pages — the header never flashes. Then browse
+  /legacy/search → a legacy product page: the Pages Router re-renders its
+  chrome on every click.
+</ModuleEmbed>
+
+## loading.tsx, error.tsx, not-found.tsx
+
+Three per-segment conventions that replace hand-rolled spinners and `_error.tsx`:
+
+- **`loading.tsx`** wraps the page in an automatic Suspense boundary. The shell flushes instantly with your skeleton — initial load and client navigations both.
+- **`error.tsx`** is a client-side error boundary for the segment, with a `reset()` to retry. The rest of the page survives; only the broken segment falls back.
+- **`not-found.tsx`** renders for `notFound()` calls. Nuance from our PDP: if an ancestor `loading.tsx` already flushed a 200 shell, `notFound()` renders the 404 UI *into the stream* but cannot change the status code — bots must key off content.
+
+## Route groups, parallel routes, interception
+
+`(group)` folders organize without affecting URLs. Parallel routes (`@slot`) and intercepting routes (`(.)segment`) power patterns like the product quick-view modal — a PDP that opens as an overlay from the grid but as a full page on direct navigation. We build one in module 5's territory; the convention belongs to this table.
+
+<Next16Callout>
+  In Next 16, `middleware.ts` is renamed to `proxy.ts` — same request-interception role,
+  clearer name. The file conventions in this module are otherwise stable; the volatile
+  surface is caching (module 7's callout).
+</Next16Callout>
+
+<DrillDeck module="routing-layouts" />

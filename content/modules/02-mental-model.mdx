@@ -1,0 +1,75 @@
+# The mental model shift
+
+The Pages Router model: **a route fetches data, then the whole page hydrates.** One data function per route, one hydration pass over everything, and every component implicitly a client component.
+
+The App Router model: **a component tree split across two environments, with the split as a dial you control.** Any component can be server (renders to output, ships no JS) or client (hydrates, can hold state and effects). The question stops being "how does this page get data?" and becomes "which parts of this tree need to be alive in the browser?"
+
+## The default flips
+
+In `pages/`, everything is client code and you opt into server rendering. In `app/`, everything is a server component and you opt into the client with one directive:
+
+```tsx
+'use client'
+```
+
+That directive does not mean "renders only on the client" — client components still server-render into the initial HTML. It means: **from this file down, the code ships to the browser and hydrates.** It marks an entry point into the client bundle, not a rendering location.
+
+## Three questions decide a component's side
+
+1. **Does it use hooks, state, or browser APIs?** Then it must live under a `'use client'` boundary. (`AddToCartButton`, the X-ray panel.)
+2. **Does it await server data or touch server-only modules?** Then it must stay server-side. (`PricingPanel` awaits a service; `lib/services.ts` is poisoned with `server-only`.)
+3. **Neither?** Then it can render on either side — and it should stay server-side, where it costs nothing. (`ProductCard`: a link, an emoji, a formatted price. No JS shipped.)
+
+## Play with the dial
+
+<ModuleEmbed href="/labs/boundary-explorer" title="Boundary Explorer — the PDP tree with a movable boundary">
+  Toggle 'use client' on any node of the real stage-3 PDP tree. Watch the
+  shipped-JS number move, and watch the tool flag the three ways a placement
+  can be illegal — the same rules the compiler enforces.
+</ModuleEmbed>
+
+## The same route, two splits
+
+Stage 1 and stage 3 of the journey are the *same page* with the dial at opposite ends:
+
+<CodeDiff before="Stage 1 — boundary at the top" after="Stage 3 — boundary at the leaves">
+
+```tsx
+'use client'
+// The WHOLE page is one client component.
+// Four useQuery calls, everything hydrates,
+// bundle unchanged from the Pages Router.
+export function Stage1PDP({ slug }) {
+  const product = useQuery({ ... })
+  const pricing = useQuery({ ... })
+  const inventory = useQuery({ ... })
+  const reviews = useQuery({ ... })
+  return <article>…</article>
+}
+```
+
+```tsx
+// Server page; data fetched where it renders.
+// The only client code on the page is the
+// add-to-cart island.
+export default async function Stage3Page({ params }) {
+  const { slug } = await params
+  const result = await getProductDetail(slug)
+  return (
+    <>
+      <PricingPanel slug={slug} />   {/* server */}
+      <AddToCartButton slug={slug} /> {/* client island */}
+    </>
+  )
+}
+```
+
+</CodeDiff>
+
+Both are legal. Stage 1 is where a migration *starts* — the mental model shift is knowing the dial exists and pushing it deliberately, not all at once.
+
+## Server children inside client parents
+
+The pattern that makes boundary-pushing possible at scale: a client component can receive **already-rendered server children** via props. The client shell holds interactivity; the server content flows through it without shipping its code. You will use this constantly in module 4.
+
+<DrillDeck module="mental-model" />
