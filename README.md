@@ -62,6 +62,6 @@ after a build).
 ## Curriculum
 
 Twelve MDX modules under `/learn` (concept → live embed → Pages-vs-App diff →
-drills). Modules 1–3 are authored; 4–12 are registered as planned and land
+drills). Modules 1–8 are authored; 9–12 are registered as planned and land
 incrementally. Drill scores and module completion persist per-browser in
 localStorage (`arfg-progress`) — no accounts.

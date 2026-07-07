@@ -4,7 +4,7 @@
     {
       "stage": 0,
       "route": "/legacy/products/[slug]",
-      "firstLoadKB": 332.3,
+      "firstLoadKB": 332.4,
       "pageKB": 12.3
     },
     {
@@ -22,7 +22,7 @@
     {
       "stage": 3,
       "route": "/journey/stage-3/products/[slug]/page",
-      "firstLoadKB": 354.2,
+      "firstLoadKB": 354.3,
       "pageKB": 3.8
     }
   ]
