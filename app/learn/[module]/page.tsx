@@ -14,6 +14,10 @@ const CONTENT: Record<string, () => Promise<{ default: ComponentType }>> = {
   'data-fetching': () => import('@/content/modules/06-data-fetching.mdx'),
   'caching-cdn': () => import('@/content/modules/07-caching-cdn.mdx'),
   'streaming-suspense': () => import('@/content/modules/08-streaming-suspense.mdx'),
+  'mutations': () => import('@/content/modules/09-mutations.mdx'),
+  'seo-metadata': () => import('@/content/modules/10-seo-metadata.mdx'),
+  'boundary-journey': () => import('@/content/modules/11-boundary-journey.mdx'),
+  'migration-playbook': () => import('@/content/modules/12-migration-playbook.mdx'),
 }
 
 export function generateStaticParams() {

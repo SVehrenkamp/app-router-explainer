@@ -428,32 +428,202 @@ export const MODULES: CurriculumModule[] = [
     number: 9,
     title: 'Mutations: Server Actions & Route Handlers',
     summary: 'Add-to-cart both ways; useActionState; progressive enhancement.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm9-enhance',
+        type: 'predict',
+        prompt:
+          'A shopper on a slow connection clicks "Add to cart" before hydration finishes. The button is a <form action={serverAction}>. What happens?',
+        options: [
+          'Nothing — handlers need hydration',
+          'The form submits natively and the action runs — progressive enhancement is built in',
+          'The click queues and replays after hydration',
+        ],
+        answerIndex: 1,
+        explanation:
+          'A Server Action bound to a form action works as a real HTML form submission before any JS runs. useActionState then upgrades the experience (pending state, inline results) once hydrated — the baseline never breaks.',
+      },
+      {
+        id: 'm9-crossing',
+        type: 'server-or-client',
+        prompt:
+          'How does addToCart (a server function) end up callable from the AddToCartButton client component?',
+        options: [
+          'It is bundled into the client JS',
+          "It crosses the boundary as a reference — 'use server' functions are the one callable thing serialization allows",
+          'The client calls /api/cart under the hood, which you must define',
+        ],
+        answerIndex: 1,
+        explanation:
+          "Server Actions are serializable references to server-side functions. The client invokes the reference; Next routes the call. No handler file, no fetch wrapper — but it IS a network call underneath, so validate inputs like one.",
+      },
+      {
+        id: 'm9-bff',
+        type: 'predict',
+        prompt:
+          'The mobile team wants the same add-to-cart your web form uses. Server Action or route handler?',
+        options: [
+          'Server Action — they are just HTTP underneath',
+          'Route handler — Server Actions are a React-app protocol, not a public API surface',
+          'Either works equally well',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Server Actions are wired to the React tree (closures, redirects, cache revalidation) and their wire format is framework-internal. The moment a consumer is not this React app — mobile, partners, webhooks — you want a route handler: a stable, documented BFF endpoint over the microservices.',
+      },
+    ],
   },
   {
     slug: 'seo-metadata',
     number: 10,
     title: 'SEO, metadata & bot rendering',
     summary: 'generateMetadata; streaming and bots; structured data.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm10-dedupe',
+        type: 'predict',
+        prompt:
+          'generateMetadata fetches the product to build the title, and the page fetches it again to render. Cost?',
+        options: [
+          'Double fetch — hoist the data to avoid it',
+          'One fetch — request memoization dedupes them within the render pass',
+          'Metadata renders after the page and reuses its props',
+        ],
+        answerIndex: 1,
+        explanation:
+          'This is the pattern the real PDP uses: both call getProductDetail(slug); memoization collapses them into a single service call. Metadata gets to be data-driven without a data-plumbing tax.',
+      },
+      {
+        id: 'm10-inversion',
+        type: 'predict',
+        prompt:
+          "The team's old pattern was SSR-for-bots-only (UA-sniffing to decide when to render on the server). What replaces it in the App Router?",
+        options: [
+          'The same pattern, using middleware to sniff bots',
+          'Nothing to replace — everything server-renders by default; bots and humans get the same HTML',
+          'generateStaticParams for bot-visited routes',
+        ],
+        answerIndex: 1,
+        explanation:
+          'The economics inverted: server rendering is the default, not an expensive special case. Bot cloaking machinery (and its consistency bugs) simply retires — one render path serves everyone.',
+      },
+      {
+        id: 'm10-blocking',
+        type: 'spot-the-bug',
+        prompt:
+          'A crawler needs the og:image of a streamed PDP whose metadata depends on the product fetch. Does streaming send <head> before metadata resolves?',
+        options: [
+          'Yes — streaming always flushes head immediately, so bots may miss tags',
+          'No — Next blocks the head flush on generateMetadata, so tags are complete; only body sections stream',
+          'Only if you set metadataBase',
+        ],
+        answerIndex: 1,
+        explanation:
+          'generateMetadata is awaited before the shell flushes — meta tags are never streamed in late. The status-code gotcha (module 8) is about notFound() AFTER flush; metadata itself is safe by construction. Keep metadata fetches fast: they gate first byte.',
+      },
+    ],
   },
   {
     slug: 'boundary-journey',
     number: 11,
     title: 'The Boundary Journey (capstone)',
     summary: 'Stages 0→3 with measured metrics; sequencing pushes safely.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm11-first-push',
+        type: 'predict',
+        prompt:
+          'A stage-1 route (whole page client) is working in production. What is the highest-value FIRST push?',
+        options: [
+          'Rewrite the page server-first in one go',
+          'Carve the static shell and initial data into server components (stage 2); leave interactive leaves client',
+          'Remove React Query before touching components',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Stage 1 → 2 is the highest-value, lowest-risk push: the shell and initial data move server-side (prefetch → HydrationBoundary) while every interactive component keeps working untouched. Big-bang rewrites and premature RQ removal both throw away the strategy’s safety.',
+      },
+      {
+        id: 'm11-metrics',
+        type: 'predict',
+        prompt:
+          "The journey dashboard shows stage 2's page-specific JS HIGHER than stage 1's. Is the strategy failing?",
+        options: [
+          'Yes — the boundary push made things worse',
+          'No — stage 2 uniquely ships the RQ hydration machinery; the number to watch is the stage-3 collapse and what the route stopped shipping overall',
+          'The measurement is wrong',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Real measurements have texture: shared chunks cancel differently per stage, and stage 2 carries dehydration plumbing that stages 1 and 3 do not. Read deltas with the footnotes — exactly why the dashboard labels what each column measures instead of asserting a tidy slope.',
+      },
+      {
+        id: 'm11-sequence',
+        type: 'spot-the-bug',
+        prompt:
+          'Mid-sprint, an engineer converts a shared component (used by 14 routes) to a server component while migrating one route. What breaks the strategy?',
+        options: [
+          'Nothing — shared components are the best place to start',
+          'The push must be route-scoped: converting shared code moves 14 boundaries at once, and any client-only usage among them breaks',
+          'Server components cannot be shared across routes',
+        ],
+        answerIndex: 1,
+        explanation:
+          'The journey works because each stage is one route’s boundary moving in isolation. Shared components migrate LAST, after every consumer route is already server-first — otherwise one conversion fans out across the app mid-sprint.',
+      },
+    ],
   },
   {
     slug: 'migration-playbook',
     number: 12,
     title: 'Migration playbook',
     summary: 'Route-by-route ordering, coexistence mechanics, gotchas checklist.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm12-coexist',
+        type: 'predict',
+        prompt: 'During the migration, /products lives in app/ while /checkout still lives in pages/. Valid?',
+        options: [
+          'No — a route tree must be all one router',
+          'Yes — both routers run in one app and one deploy; a path resolves from whichever router defines it',
+          'Only behind a feature flag',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Coexistence is first-class: this very site serves /store from app/ and /legacy/* from pages/ in one build (and one Worker). The migration is route-by-route precisely because the routers share the app, the deploy, and the session.',
+      },
+      {
+        id: 'm12-events',
+        type: 'spot-the-bug',
+        prompt:
+          "The analytics setup in _app relied on router.events('routeChangeComplete'). After migrating, page views stop firing for app/ routes. Why?",
+        options: [
+          'Analytics scripts are blocked in the App Router',
+          'router.events does not exist in next/navigation — track navigations with a usePathname/useSearchParams effect in a client component instead',
+          'The events fire but only on the server',
+        ],
+        answerIndex: 1,
+        explanation:
+          'router.events died with next/router. The replacement is a small client component (rendered once in the root layout) that watches usePathname + useSearchParams and reports changes — one of the checklist items teams discover in production if the playbook misses it.',
+      },
+      {
+        id: 'm12-order',
+        type: 'predict',
+        prompt: 'Which route migrates FIRST under the playbook?',
+        options: [
+          'The homepage — highest traffic, biggest win',
+          'A low-traffic leaf route with few shared components — smallest blast radius, fastest learning',
+          'The checkout — hardest first while energy is high',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Leaf routes with minimal shared-component surface teach the team the mechanics where mistakes are cheap. High-traffic and high-risk routes go once the patterns (and the perf watch list) are proven. Shared components migrate last of all (module 11).',
+      },
+    ],
   },
 ]
 

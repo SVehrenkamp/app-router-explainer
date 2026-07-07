@@ -1,0 +1,82 @@
+# Migration playbook
+
+The last module is the operational one: the order to migrate routes, the mechanics of running both routers in one app, and the checklist of things that silently break if nobody owns them. Print this one.
+
+## Coexistence is the foundation
+
+Both routers run in the same app, the same build, the same deploy. You are looking at the proof:
+
+<ModuleEmbed href="/legacy/products/aurora-desk-lamp" title="This site runs both routers right now">
+  /store and /journey are app/ routes; /legacy/* is the Pages Router —
+  getInitialProps, _app, and all — served from the same build (and the same
+  Cloudflare Worker). Navigation between them is a full page load; within each
+  router it is client-side. That seam is the migration's steady state.
+</ModuleEmbed>
+
+Mechanics to know: a URL resolves from whichever router defines it (defining it in both is a build error); each router keeps its own chrome (`_app` vs layouts) so shared UI must live in components both can import; crossing routers is a document navigation, so plan the seam where a full load is acceptable.
+
+## Route ordering
+
+1. **A quiet leaf route first** — few shared components, low traffic. The goal is team learning at minimal stakes, stage 0 → 1 only.
+2. **Fan out stage-1 conversions** — the cheap, reversible step (one directive) across many routes; each PR flips one route.
+3. **Push to stage 2 where data is server-shaped** — catalog and content routes before personalization-heavy ones.
+4. **Stage 3 for the routes that earn it** — streaming pays where services have real latency spread (our PDP), not on every page.
+5. **High-traffic and revenue-critical routes** once the patterns are boring. **Shared components last of all** (module 11's rule).
+
+## The gotchas checklist
+
+- **`_app` logic** splits three ways: document shell → root layout; providers → a client `Providers` child (module 5); per-navigation side effects → see next item. The old junk drawer maps to three labeled drawers:
+
+<CodeDiff before="pages/_app.tsx — the junk drawer" after="app/ — three labeled drawers">
+
+```tsx
+export default function App({ Component, pageProps }) {
+  // 1. providers
+  const [qc] = useState(() => new QueryClient())
+  // 2. per-navigation analytics
+  useEffect(() => {
+    router.events.on('routeChangeComplete', track)
+    …
+  }, [])
+  // 3. global chrome
+  return (
+    <QueryClientProvider client={qc}>
+      <Nav />
+      <Component {...pageProps} />
+    </QueryClientProvider>
+  )
+}
+```
+
+```tsx
+// app/layout.tsx (server): chrome + shell
+// app/providers.tsx (client): QueryClientProvider
+// app/analytics.tsx (client, in the layout):
+'use client'
+export function Analytics() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    track(pathname, searchParams.toString())
+  }, [pathname, searchParams])
+  return null
+}
+```
+
+</CodeDiff>
+
+- **`router.events` is gone** — the pathname-effect pattern above replaces `routeChangeComplete`; there is no early `routeChangeStart` equivalent, so loading affordances belong to `loading.tsx` now.
+- **Error pages**: `_error.tsx`/`pages/404` serve only the pages/ side; app/ routes need `error.tsx`/`not-found.tsx` per segment (module 3) — during coexistence you maintain both.
+- **Dynamic imports**: `next/dynamic` with `ssr: false` is a client-component concern now; in server components, just import — or wrap the client-only widget behind a `'use client'` file.
+- **Middleware** applies to both routers (one file) — and renames to `proxy.ts` in Next 16 (module 3's callout).
+- **The status-code inversion** for `notFound()` after a flushed shell (modules 8/10) — update monitoring before the first streamed route ships, not after.
+
+## The perf watch list
+
+Per migrated route, before merge: **route client JS** (the build's manifest numbers — our dashboard's columns, with their footnotes); **CLS** from skeleton sizing (module 8); **first byte** if `generateMetadata` gained a fetch (module 10); **cache headers** the CDN sees (module 7's lens). Regressions here are cheap to catch in a PR and expensive to discover in a quarterly review.
+
+## Where to go from here
+
+The storefront is the reference implementation; the journey is the strategy; the labs are the instruments. When a real route fights you, find its twin here — every pattern in this playbook is running code with a **Show me the code** button.
+
+<DrillDeck module="migration-playbook" />

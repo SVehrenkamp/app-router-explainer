@@ -5,10 +5,13 @@ test('a curriculum module renders through the MDX pipeline', async ({ page }) =>
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/Why the App Router/i)
 })
 
-test('course shell lists all 12 modules with planned ones marked', async ({ page }) => {
+test('course shell lists all 12 modules as live links', async ({ page }) => {
   await page.goto('/learn/why-app-router')
   await expect(page.getByTestId(/sidebar-module-/)).toHaveCount(12)
-  await expect(page.getByTestId('sidebar-module-migration-playbook')).toContainText('planned')
+  await expect(page.getByTestId('sidebar-module-migration-playbook')).toHaveAttribute(
+    'href',
+    '/learn/migration-playbook'
+  )
 })
 
 test('drills give instant feedback and persist across reload', async ({ page }) => {
@@ -34,13 +37,17 @@ test('landing page shows the pitch, stage strip, and 12-module path', async ({ p
   await expect(page.getByTestId('path-module')).toHaveCount(12)
 })
 
-test('modules 4-8 render with drills and their signature content', async ({ page }) => {
+test('modules 4-12 render with drills and their signature content', async ({ page }) => {
   const markers: Record<string, string | RegExp> = {
     'server-components-boundary': 'composition workhorse',
     'hooks-client-patterns': 'useSearchParams',
     'data-fetching': 'Request memoization',
     'caching-cdn': 'What changes in Next 16',
     'streaming-suspense': 'Partial Prerendering',
+    mutations: 'progressive enhancement',
+    'seo-metadata': 'generateMetadata',
+    'boundary-journey': 'decision framework',
+    'migration-playbook': 'gotchas checklist',
   }
   for (const [slug, marker] of Object.entries(markers)) {
     await page.goto(`/learn/${slug}`)
