@@ -276,8 +276,51 @@ export const MODULES: CurriculumModule[] = [
     number: 6,
     title: 'Data fetching',
     summary: 'getInitialProps → async server components; React Query coexistence per stage.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm6-memo',
+        type: 'predict',
+        prompt:
+          'generateMetadata and the page component both call getProductDetail(slug) with the same URL during one request. How many network calls happen?',
+        options: [
+          'Two — they are separate functions',
+          'One — request memoization dedupes identical fetches within a single render pass',
+          'Zero — metadata reads the page cache',
+        ],
+        answerIndex: 1,
+        explanation:
+          'fetch calls with the same URL and options are memoized per request in the App Router. That is why the real PDP fetches product data in generateMetadata AND the page body without paying twice — no manual plumbing.',
+      },
+      {
+        id: 'm6-waterfall',
+        type: 'spot-the-bug',
+        prompt:
+          'A server component does: const pricing = await getPricing(slug); const inventory = await getInventory(slug). What is wrong?',
+        options: [
+          'Nothing — server fetches are free',
+          'A sequential waterfall: inventory waits for pricing for no reason. Promise.all or separate Suspense sections fix it',
+          'Server components may only await one fetch',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Server-side fetching removes client waterfalls but you can still hand-build one with sequential awaits. Start independent requests together (Promise.all), or give each its own Suspense section so they stream independently — the stage-3 PDP does the latter.',
+      },
+      {
+        id: 'm6-stay-client',
+        type: 'server-or-client',
+        prompt:
+          'After migrating to server-first pages, which query rightfully STAYS in client-side React Query?',
+        options: [
+          'The product detail for the current page',
+          'Infinite-scroll pagination, polling, and mutations with optimistic UI',
+          'None — React Query is removed at stage 3',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Server components own initial page data; React Query keeps what is genuinely client-interactive: paginate-on-click (our PLP grid), polling, shared client caches, and mutation state. Coexistence is the end state, not a transition cost.',
+      },
+    ],
   },
   {
     slug: 'caching-cdn',

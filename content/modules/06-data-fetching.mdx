@@ -1,0 +1,82 @@
+# Data fetching
+
+`getInitialProps` made data fetching a *route-level ceremony*: one function, one blob of props, one all-or-nothing wait. The App Router makes it a *component-level fact*: any server component just awaits what it needs, where it renders. This module maps the old ceremony to the new default — and settles which jobs React Query keeps.
+
+## From ceremony to `await`
+
+<CodeDiff before="pages/ — route-level ceremony" after="app/ — fetch where you render">
+
+```tsx
+// One function gates the whole page.
+// Runs on server OR client depending on
+// how you navigated — so every fetch
+// needs isomorphic plumbing (ctx.req!).
+LegacyProductPage.getInitialProps = async (ctx) => {
+  const [product, pricing, inventory] =
+    await Promise.all([
+      fetchLegacyJson(`…/products/${slug}`, ctx.req),
+      fetchLegacyJson(`…/pricing/${slug}`, ctx.req),
+      fetchLegacyJson(`…/inventory/${slug}`, ctx.req),
+    ])
+  return { product, pricing, inventory }
+}
+```
+
+```tsx
+// Each section awaits its own service,
+// always on the server. No isomorphic
+// plumbing, no route-level gate.
+export async function PricingPanel({ slug }) {
+  const { data } = await getPricing(slug)
+  return <Price {...data} />
+}
+
+export async function InventoryBadge({ slug }) {
+  const { data } = await getInventory(slug)
+  return <Stock {...data} />
+}
+```
+
+</CodeDiff>
+
+Notice what evaporated: the `ctx.req` host-plumbing (module 3's legacy pages carry it; server components never need it), the props-blob threading, and the single gate — each section can stream on its own schedule.
+
+## Request memoization: fetch freely
+
+Within one render pass, identical `fetch` calls are deduped automatically. The real PDP leans on this: `generateMetadata` and the page body both call `getProductDetail(slug)` — one network call. Stop hoisting data to share it; fetch it where it's used and let memoization do the sharing.
+
+## Waterfalls are still your job
+
+Server fetching kills the *client* waterfall (fetch → hydrate → fetch), but sequential `await`s still serialize. Three tools, in order of preference:
+
+1. **Independent Suspense sections** — each fetch streams alone (the stage-3 PDP).
+2. **`Promise.all`** — when one component truly needs several results together.
+3. **Preload pattern** — kick a fetch early (call the function without awaiting), await it where the data renders; memoization joins the two.
+
+## React Query coexistence, by journey stage
+
+<ModuleEmbed href="/journey" title="The coexistence story, stage by stage">
+  Stage 1: RQ untouched — everything works exactly as today. Stage 2:
+  prefetchQuery on the server → HydrationBoundary → the client cache starts
+  warm. Stage 3: server components own initial data; RQ keeps the truly
+  client-side jobs.
+</ModuleEmbed>
+
+The stage-2 handshake is the pattern worth memorizing — same queryKey on both sides, data crosses as dehydrated cache:
+
+```tsx
+const queryClient = new QueryClient()
+await queryClient.prefetchQuery({
+  queryKey: ['s2-reviews', slug],
+  queryFn: async () => (await getReviews(slug)).data,
+})
+return (
+  <HydrationBoundary state={dehydrate(queryClient)}>
+    <HydratedReviews slug={slug} />  {/* useQuery, same key — no client fetch */}
+  </HydrationBoundary>
+)
+```
+
+**What stays client-side for good:** infinite scroll (our PLP's `useSuspenseInfiniteQuery` grid), polling, optimistic mutations, and any cache shared across client interactions. Migrating a route never means evicting React Query — it means letting each layer do the job it's best at.
+
+<DrillDeck module="data-fetching" />
