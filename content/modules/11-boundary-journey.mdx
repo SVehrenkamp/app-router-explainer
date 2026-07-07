@@ -1,0 +1,59 @@
+# The Boundary Journey (capstone)
+
+Everything in this course compresses into one strategy: **start with the boundary at the top, push it down in measured, route-scoped steps.** You have now seen every mechanism the strategy uses — this module re-reads the four stages as a decision framework you can run on any route in our app.
+
+<ModuleEmbed href="/journey" title="The dashboard — four real stages, measured">
+  Every claim below is clickable: the same PDP at stages 0–3, with client-JS
+  numbers from the build manifests. Keep it open while you read.
+</ModuleEmbed>
+
+## The four stages as decisions
+
+**Stage 0 → 1: move the route, not the code.** One `'use client'` at the page root; React Query untouched (module 6). You gain layouts, `loading.tsx`, `next/navigation` — and *deliberately* nothing else. The value is that nothing can break: this is the step you can do to forty routes in a sprint.
+
+**Stage 1 → 2: carve the shell.** Static sections and initial data go server-side; `prefetchQuery → HydrationBoundary` warms the client cache; interactive islands keep their hooks (modules 4–6). This is the highest payoff-per-risk push — and the diff is small:
+
+<CodeDiff before="Stage 1 — page head" after="Stage 2 — page head">
+
+```tsx
+'use client'
+// Everything below this line ships & hydrates.
+export function Stage1PDP({ slug }) {
+  const product = useQuery({ … })
+  const reviews = useQuery({ … })
+  …
+}
+```
+
+```tsx
+// Server page: shell + data move server-side…
+const result = await getProductDetail(slug)
+await queryClient.prefetchQuery({
+  queryKey: ['s2-reviews', slug], …
+})
+// …islands stay client, cache starts warm.
+<HydrationBoundary state={dehydrate(queryClient)}>
+  <HydratedReviews slug={slug} />
+</HydrationBoundary>
+```
+
+</CodeDiff>
+
+**Stage 2 → 3: islands only where needed.** Data fetching moves into per-section server components behind their own Suspense boundaries (module 8); the client keeps exactly the leaves that need hooks (add-to-cart). This is the step that pays in bundle and in streaming UX — and the step that takes real design work.
+
+## What to push, in what order
+
+1. **Leaves with hooks stay put** — they are the islands; identify them first (Boundary Explorer, module 2).
+2. **Static shell and chrome go first** — headers, product info, anything hook-free.
+3. **Initial data second** — server prefetch with the stage-2 handshake; queries that are genuinely client-side (pagination, polling, mutations) stay in RQ *forever*, not temporarily.
+4. **Shared components go last.** A component used by 14 routes moves 14 boundaries when it changes — convert it only when every consumer is already server-first. The journey works because each stage is *one route's* boundary moving in isolation.
+
+## Reading the measurements like an adult
+
+The dashboard's numbers are real, which means they have texture. Route totals are dominated by each router's shared baseline, so pages- and app-router totals aren't directly comparable. Stage 2's page-specific number is *higher* than stage 1's — it uniquely ships the hydration machinery. The narrative number is the stage-3 collapse (a few KB of page-specific JS) plus what stopped shipping entirely: at stage 3 the data layer, formatters, and section markup never reach the browser at all. When you instrument our real migration, copy the dashboard's honesty: label what each number measures, or the graphs will argue for the wrong pushes.
+
+## Sequencing safely at scale
+
+Route-by-route, never mid-sprint on shared code; each push behind a PR that flips exactly one boundary; the perf watch list (module 12) checked before merge. Stage 1 is reversible by deleting a directive; stage 3 is a design you keep. That asymmetry is the whole reason the strategy starts high.
+
+<DrillDeck module="boundary-journey" />

@@ -530,8 +530,51 @@ export const MODULES: CurriculumModule[] = [
     number: 11,
     title: 'The Boundary Journey (capstone)',
     summary: 'Stages 0→3 with measured metrics; sequencing pushes safely.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm11-first-push',
+        type: 'predict',
+        prompt:
+          'A stage-1 route (whole page client) is working in production. What is the highest-value FIRST push?',
+        options: [
+          'Rewrite the page server-first in one go',
+          'Carve the static shell and initial data into server components (stage 2); leave interactive leaves client',
+          'Remove React Query before touching components',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Stage 1 → 2 is the highest-value, lowest-risk push: the shell and initial data move server-side (prefetch → HydrationBoundary) while every interactive component keeps working untouched. Big-bang rewrites and premature RQ removal both throw away the strategy’s safety.',
+      },
+      {
+        id: 'm11-metrics',
+        type: 'predict',
+        prompt:
+          "The journey dashboard shows stage 2's page-specific JS HIGHER than stage 1's. Is the strategy failing?",
+        options: [
+          'Yes — the boundary push made things worse',
+          'No — stage 2 uniquely ships the RQ hydration machinery; the number to watch is the stage-3 collapse and what the route stopped shipping overall',
+          'The measurement is wrong',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Real measurements have texture: shared chunks cancel differently per stage, and stage 2 carries dehydration plumbing that stages 1 and 3 do not. Read deltas with the footnotes — exactly why the dashboard labels what each column measures instead of asserting a tidy slope.',
+      },
+      {
+        id: 'm11-sequence',
+        type: 'spot-the-bug',
+        prompt:
+          'Mid-sprint, an engineer converts a shared component (used by 14 routes) to a server component while migrating one route. What breaks the strategy?',
+        options: [
+          'Nothing — shared components are the best place to start',
+          'The push must be route-scoped: converting shared code moves 14 boundaries at once, and any client-only usage among them breaks',
+          'Server components cannot be shared across routes',
+        ],
+        answerIndex: 1,
+        explanation:
+          'The journey works because each stage is one route’s boundary moving in isolation. Shared components migrate LAST, after every consumer route is already server-first — otherwise one conversion fans out across the app mid-sprint.',
+      },
+    ],
   },
   {
     slug: 'migration-playbook',

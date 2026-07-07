@@ -16,6 +16,7 @@ const CONTENT: Record<string, () => Promise<{ default: ComponentType }>> = {
   'streaming-suspense': () => import('@/content/modules/08-streaming-suspense.mdx'),
   'mutations': () => import('@/content/modules/09-mutations.mdx'),
   'seo-metadata': () => import('@/content/modules/10-seo-metadata.mdx'),
+  'boundary-journey': () => import('@/content/modules/11-boundary-journey.mdx'),
 }
 
 export function generateStaticParams() {
