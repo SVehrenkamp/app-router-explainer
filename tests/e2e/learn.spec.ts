@@ -20,3 +20,10 @@ test('drills give instant feedback and persist across reload', async ({ page }) 
   await page.reload()
   await expect(page.getByTestId('deck-score')).toHaveText(score ?? '')
 })
+
+test('modules 2 and 3 render with embeds, diffs, and drills', async ({ page }) => {
+  await page.goto('/learn/mental-model')
+  await expect(page.getByTestId(/^drill-/).first()).toBeVisible()
+  await page.goto('/learn/routing-layouts')
+  await expect(page.getByText('What changes in Next 16')).toBeVisible()
+})

@@ -7,6 +7,8 @@ import { MODULES, moduleBySlug } from '@/lib/curriculum'
 
 const CONTENT: Record<string, () => Promise<{ default: ComponentType }>> = {
   'why-app-router': () => import('@/content/modules/01-why-app-router.mdx'),
+  'mental-model': () => import('@/content/modules/02-mental-model.mdx'),
+  'routing-layouts': () => import('@/content/modules/03-routing-layouts.mdx'),
 }
 
 export function generateStaticParams() {

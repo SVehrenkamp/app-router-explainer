@@ -1,5 +1,84 @@
 # Why the App Router
 
-(Authored in Task 6.)
+You already know the Pages Router deeply — that knowledge transfers. What changes is *where work happens*. The Pages Router has one honest answer: everything meaningful happens in the browser, after hydration. The App Router gives you a dial.
+
+This module is the pitch in concrete terms: four things the App Router unlocks that our stack — React Query on a microservice backend behind Fastly, minimal SSR today — cannot get any other way.
+
+## 1. Streaming: slow services stop gating whole pages
+
+Our PDP calls four services. In the `getInitialProps` world, the slowest one (reviews, ~1.5s) decides when the shopper sees *anything*. With streaming Suspense sections, the shell and product info flush immediately and each section arrives when its service answers.
+
+<ModuleEmbed href="/journey/stage-3/products/aurora-desk-lamp?delay_reviews=3000" title="Feel it: stage-3 PDP with reviews slowed to 3s">
+  The name and price render instantly; the reviews skeleton streams in when its
+  service answers. Then open stage 0 with the same delay and watch the whole
+  page wait.
+</ModuleEmbed>
+
+## 2. Smaller client bundles — by default, not by effort
+
+A server component ships its **output**, not its code. The formatter, the service client, the markdown renderer — none of it enters the browser bundle unless a `'use client'` file imports it. In the Pages Router, shrinking the bundle was a project; here it is the default you opt *out* of.
+
+## 3. Layouts that actually persist
+
+`_app.tsx` re-ran on every navigation. App Router layouts render once and stay mounted while pages swap beneath them — state, DOM, scroll and all. The storefront header (and the X-ray toggle's state) survives every navigation under `/store`.
+
+## 4. Server Actions: mutations without API plumbing
+
+Add-to-cart in our demo is a typed function call from a form. No `/api/cart` handler, no client fetch wrapper, no serialization boilerplate — and it works before hydration (progressive enhancement included).
+
+## The migration in one picture
+
+We are not rewriting. We move each route into the App Router with the client boundary **at the top** (everything still works, React Query untouched), then push the boundary down in measured steps. That journey — the same PDP at four real stages, with measured bundle numbers — is the site's spine:
+
+<ModuleEmbed href="/journey" title="The Boundary Journey — stages 0 → 3, measured">
+  Stage 0 is our app today (Pages Router, getInitialProps). Stage 3 is the
+  target. The dashboard shows what each boundary push buys, measured from the
+  build manifests.
+</ModuleEmbed>
+
+## Before and after, side by side
+
+The head of the stage-0 PDP versus the head of the stage-3 PDP — same page, same services:
+
+<CodeDiff before="pages/legacy/products/[slug].tsx (stage 0)" after="app/journey/stage-3/products/[slug]/page.tsx (stage 3)">
+
+```tsx
+// Renders NOTHING until the slowest
+// service answers. Every byte hydrates.
+LegacyProductPage.getInitialProps =
+  async (ctx) => {
+    const [product, pricing, inventory] =
+      await Promise.all([
+        fetchLegacyJson(`/api/services/products/${slug}`, ctx.req),
+        fetchLegacyJson(`/api/services/pricing/${slug}`, ctx.req),
+        fetchLegacyJson(`/api/services/inventory/${slug}`, ctx.req),
+      ])
+    return { product, pricing, inventory }
+  }
+```
+
+```tsx
+// Shell flushes immediately; each section
+// streams behind its own Suspense boundary.
+export default async function Stage3Page({ params }) {
+  const { slug } = await params
+  const result = await getProductDetail(slug)
+  if (!result) notFound()
+  return (
+    <>
+      <Suspense fallback={<PriceSkeleton />}>
+        <PricingPanel slug={slug} />
+      </Suspense>
+      <Suspense fallback={<ReviewsSkeleton />}>
+        <ReviewsSection slug={slug} />
+      </Suspense>
+    </>
+  )
+}
+```
+
+</CodeDiff>
+
+Everything in this course is running code in this repo — every example has a **Show me the code** button somewhere in the storefront, and every claim about performance is a number the build measured.
 
 <DrillDeck module="why-app-router" />
