@@ -37,13 +37,17 @@ test('landing page shows the pitch, stage strip, and 12-module path', async ({ p
   await expect(page.getByTestId('path-module')).toHaveCount(12)
 })
 
-test('modules 4-8 render with drills and their signature content', async ({ page }) => {
+test('modules 4-12 render with drills and their signature content', async ({ page }) => {
   const markers: Record<string, string | RegExp> = {
     'server-components-boundary': 'composition workhorse',
     'hooks-client-patterns': 'useSearchParams',
     'data-fetching': 'Request memoization',
     'caching-cdn': 'What changes in Next 16',
     'streaming-suspense': 'Partial Prerendering',
+    mutations: 'progressive enhancement',
+    'seo-metadata': 'generateMetadata',
+    'boundary-journey': 'decision framework',
+    'migration-playbook': 'gotchas checklist',
   }
   for (const [slug, marker] of Object.entries(markers)) {
     await page.goto(`/learn/${slug}`)

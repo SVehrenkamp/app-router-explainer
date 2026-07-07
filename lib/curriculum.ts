@@ -581,8 +581,49 @@ export const MODULES: CurriculumModule[] = [
     number: 12,
     title: 'Migration playbook',
     summary: 'Route-by-route ordering, coexistence mechanics, gotchas checklist.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm12-coexist',
+        type: 'predict',
+        prompt: 'During the migration, /products lives in app/ while /checkout still lives in pages/. Valid?',
+        options: [
+          'No — a route tree must be all one router',
+          'Yes — both routers run in one app and one deploy; a path resolves from whichever router defines it',
+          'Only behind a feature flag',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Coexistence is first-class: this very site serves /store from app/ and /legacy/* from pages/ in one build (and one Worker). The migration is route-by-route precisely because the routers share the app, the deploy, and the session.',
+      },
+      {
+        id: 'm12-events',
+        type: 'spot-the-bug',
+        prompt:
+          "The analytics setup in _app relied on router.events('routeChangeComplete'). After migrating, page views stop firing for app/ routes. Why?",
+        options: [
+          'Analytics scripts are blocked in the App Router',
+          'router.events does not exist in next/navigation — track navigations with a usePathname/useSearchParams effect in a client component instead',
+          'The events fire but only on the server',
+        ],
+        answerIndex: 1,
+        explanation:
+          'router.events died with next/router. The replacement is a small client component (rendered once in the root layout) that watches usePathname + useSearchParams and reports changes — one of the checklist items teams discover in production if the playbook misses it.',
+      },
+      {
+        id: 'm12-order',
+        type: 'predict',
+        prompt: 'Which route migrates FIRST under the playbook?',
+        options: [
+          'The homepage — highest traffic, biggest win',
+          'A low-traffic leaf route with few shared components — smallest blast radius, fastest learning',
+          'The checkout — hardest first while energy is high',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Leaf routes with minimal shared-component surface teach the team the mechanics where mistakes are cheap. High-traffic and high-risk routes go once the patterns (and the perf watch list) are proven. Shared components migrate last of all (module 11).',
+      },
+    ],
   },
 ]
 
