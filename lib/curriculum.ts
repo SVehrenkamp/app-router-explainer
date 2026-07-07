@@ -378,8 +378,50 @@ export const MODULES: CurriculumModule[] = [
     number: 8,
     title: 'Streaming, Suspense & loading UI',
     summary: 'Boundary placement, sequencing, and the PDP showcase.',
-    status: 'planned',
-    drills: [],
+    status: 'available',
+    drills: [
+      {
+        id: 'm8-placement',
+        type: 'predict',
+        prompt:
+          'The PDP wraps pricing, inventory, and reviews in ONE shared Suspense boundary instead of three. Reviews takes 3s. What renders at t=0.5s?',
+        options: [
+          'Pricing and inventory, with a reviews skeleton',
+          'One combined skeleton — the shared boundary resolves only when ALL three finish',
+          'Nothing until hydration',
+        ],
+        answerIndex: 1,
+        explanation:
+          'A Suspense boundary resolves as a unit: its slowest child gates everything inside it. Per-section boundaries are why the stage-3 PDP shows price at half a second while reviews stream at three — boundary placement IS the streaming design.',
+      },
+      {
+        id: 'm8-loading',
+        type: 'server-or-client',
+        prompt: 'loading.tsx vs an inline <Suspense> — when do you reach for which?',
+        options: [
+          'They are interchangeable',
+          'loading.tsx = whole-page fallback on navigation; inline Suspense = per-section streaming within an already-visible page',
+          'loading.tsx only works for static routes',
+        ],
+        answerIndex: 1,
+        explanation:
+          'loading.tsx wraps the entire page segment — instant shell on navigation. Inline boundaries subdivide the page so independent data arrives independently. The PDP uses both: the route flushes via loading.tsx, then sections stream inside it.',
+      },
+      {
+        id: 'm8-notfound',
+        type: 'spot-the-bug',
+        prompt:
+          'Monitoring alerts on 404 rates for retired products, but the dashboard shows zero — while users clearly see the not-found page. Why?',
+        options: [
+          'The monitoring agent is broken',
+          'An ancestor loading.tsx flushed a 200 shell before notFound() ran — the 404 UI streams in, but the HTTP status was already sent',
+          'notFound() returns 500 in production',
+        ],
+        answerIndex: 1,
+        explanation:
+          'Once streaming starts, the status code is spoken for. notFound() after the shell flush renders the right UI but cannot rewrite the 200. Bots and monitors must key off content (or the fetch must happen before the boundary) — a real SEO/observability gotcha.',
+      },
+    ],
   },
   {
     slug: 'mutations',
