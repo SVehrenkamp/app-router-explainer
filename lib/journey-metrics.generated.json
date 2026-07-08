@@ -10,20 +10,20 @@
     {
       "stage": 1,
       "route": "/journey/stage-1/products/[slug]/page",
-      "firstLoadKB": 378,
-      "pageKB": 5.1
+      "firstLoadKB": 378.6,
+      "pageKB": 5.7
     },
     {
       "stage": 2,
       "route": "/journey/stage-2/products/[slug]/page",
-      "firstLoadKB": 392,
-      "pageKB": 19.1
+      "firstLoadKB": 392.6,
+      "pageKB": 19.7
     },
     {
       "stage": 3,
       "route": "/journey/stage-3/products/[slug]/page",
-      "firstLoadKB": 354.3,
-      "pageKB": 3.8
+      "firstLoadKB": 354.9,
+      "pageKB": 4.5
     }
   ]
 }

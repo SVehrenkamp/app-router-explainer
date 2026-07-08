@@ -5,7 +5,7 @@
 // inventory are still classic client-side React Query: the boundary has moved
 // down, but not all the way.
 import { useQuery } from '@tanstack/react-query'
-import { XrayReport } from '@/components/xray/report'
+import { XrayRegion } from '@/components/xray/region'
 import { fetchLegacyJson } from '@/lib/legacy-fetch'
 import { formatPrice } from '@/lib/format'
 import type { Inventory, Pricing, ReviewSummary } from '@/lib/types'
@@ -16,10 +16,11 @@ export function PricingIsland({ slug }: { slug: string }) {
     queryFn: () => fetchLegacyJson<Pricing>(`/api/services/pricing/${slug}`),
   })
   return (
-    <div data-testid="s2-pricing-island" className="text-2xl font-semibold">
-      <XrayReport label="PricingIsland" kind="client" />
+    <XrayRegion label="PricingIsland" kind="client">
+      <div data-testid="s2-pricing-island" className="text-2xl font-semibold">
       {data ? formatPrice(data.priceCents) : <span className="text-sm text-zinc-500">Loading price…</span>}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }
 
@@ -30,14 +31,15 @@ export function InventoryIsland({ slug }: { slug: string }) {
   })
   if (!data) return <span className="text-sm text-zinc-500">Checking stock…</span>
   return (
-    <div className="text-sm">
-      <XrayReport label="InventoryIsland" kind="client" />
+    <XrayRegion label="InventoryIsland" kind="client">
+      <div className="text-sm">
       {data.inStock ? (
         <span className="text-emerald-700">In stock — {data.quantity} available</span>
       ) : (
         <span className="text-red-600">Out of stock</span>
       )}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }
 
@@ -50,8 +52,8 @@ export function HydratedReviews({ slug }: { slug: string }) {
   })
   if (!data) return <p className="text-sm text-zinc-500">Loading reviews…</p>
   return (
-    <div data-testid="s2-reviews" className="space-y-3">
-      <XrayReport label="HydratedReviews" kind="client" />
+    <XrayRegion label="HydratedReviews" kind="client">
+      <div data-testid="s2-reviews" className="space-y-3">
       <div className="text-sm text-zinc-600">
         {data.averageRating} ★ · {data.reviews.length} reviews
       </div>
@@ -63,6 +65,7 @@ export function HydratedReviews({ slug }: { slug: string }) {
           <p className="text-sm text-zinc-600">{review.body}</p>
         </blockquote>
       ))}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }

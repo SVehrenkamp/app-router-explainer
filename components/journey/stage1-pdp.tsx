@@ -7,7 +7,7 @@
 // stage 1, and exactly why it is the safest first step for a big codebase.
 // Client components still SSR: the loading states below render on the server.
 import { useQuery } from '@tanstack/react-query'
-import { XrayReport } from '@/components/xray/report'
+import { XrayRegion } from '@/components/xray/region'
 import { fetchLegacyJson } from '@/lib/legacy-fetch'
 import { formatPrice } from '@/lib/format'
 import type { Inventory, Pricing, Product, ReviewSummary } from '@/lib/types'
@@ -31,8 +31,8 @@ export function Stage1PDP({ slug }: { slug: string }) {
   })
 
   return (
-    <article data-testid="stage1-pdp" className="grid gap-8 md:grid-cols-2">
-      <XrayReport label="Stage1PDP (entire page)" kind="client" />
+    <XrayRegion label="Stage1PDP (entire page)" kind="client">
+      <article data-testid="stage1-pdp" className="grid gap-8 md:grid-cols-2">
       <div className="flex items-center justify-center rounded-xl bg-white py-16 text-8xl">
         {product.data?.emoji ?? '…'}
       </div>
@@ -85,6 +85,7 @@ export function Stage1PDP({ slug }: { slug: string }) {
           <p className="text-sm text-zinc-500">Loading reviews…</p>
         )}
       </section>
-    </article>
+      </article>
+    </XrayRegion>
   )
 }
