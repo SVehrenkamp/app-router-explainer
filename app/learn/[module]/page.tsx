@@ -32,10 +32,20 @@ export async function generateMetadata({ params }: { params: Promise<{ module: s
 export default async function ModulePage({ params }: { params: Promise<{ module: string }> }) {
   const { module: slug } = await params
   const load = CONTENT[slug]
-  if (!load) notFound()
+  const mod = moduleBySlug(slug)
+  if (!load || !mod) notFound()
   const { default: Content } = await load()
   return (
     <article className="max-w-3xl">
+      <header className="mb-3 flex items-center gap-3">
+        <span className="figures text-sm text-zinc-400">
+          Module {String(mod.number).padStart(2, '0')} / 12
+        </span>
+        <span className="seam h-[2px] w-10 rounded-full opacity-60" />
+        <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+          {mod.drills.length} drills
+        </span>
+      </header>
       <Content />
     </article>
   )

@@ -7,11 +7,8 @@ import { ProgressProvider } from '@/components/learn/progress-provider'
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProgressProvider>
-      <div className="grid gap-8 md:grid-cols-[260px_1fr]">
-        <aside>
-          <div className="mb-3 px-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Curriculum
-          </div>
+      <div className="grid gap-10 md:grid-cols-[264px_1fr]">
+        <aside className="md:sticky md:top-20 md:h-fit">
           <CourseSidebar />
         </aside>
         <div className="min-w-0">{children}</div>

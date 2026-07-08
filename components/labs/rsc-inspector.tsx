@@ -14,8 +14,8 @@ const ROUTES = [
 ]
 
 const KIND_STYLES: Record<FlightRow['kind'], string> = {
-  module: 'bg-sky-100 text-sky-800',
-  tree: 'bg-emerald-100 text-emerald-800',
+  module: 'bg-indigo-100 text-indigo-800',
+  tree: 'bg-teal-100 text-teal-800',
   text: 'bg-zinc-100 text-zinc-700',
   hint: 'bg-amber-100 text-amber-800',
   other: 'bg-zinc-100 text-zinc-500',
@@ -103,8 +103,8 @@ export function RscInspector() {
           ))}
           <p className="pt-2 text-zinc-500">
             Heuristic annotation of an undocumented wire format — kinds are a reading aid, not a
-            spec. <span className="text-sky-800">module</span> rows reference client-component JS
-            the browser loads; <span className="text-emerald-800">tree</span> rows are server
+            spec. <span className="text-indigo-700">module</span> rows reference client-component JS
+            the browser loads; <span className="text-teal-700">tree</span> rows are server
             output crossing as data.
           </p>
         </div>

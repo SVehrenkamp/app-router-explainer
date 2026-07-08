@@ -9,7 +9,7 @@ export default function RscInspectorPage() {
     <section className="space-y-6">
       <div className="flex items-start justify-between">
         <div className="max-w-2xl space-y-2">
-          <h1 className="text-3xl font-bold">RSC Payload Inspector</h1>
+          <h1 className="font-display text-4xl font-bold tracking-tight">RSC Payload Inspector</h1>
           <p className="text-zinc-600">
             Fetch a storefront route with the{' '}
             <code className="rounded bg-zinc-100 px-1">RSC: 1</code> header — exactly what the

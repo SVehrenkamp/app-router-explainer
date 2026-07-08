@@ -13,7 +13,7 @@ export default function JourneyLayout({ children }: { children: React.ReactNode 
       <div>
         <DevModeBanner />
         <header className="mb-6 flex items-center gap-6 border-b border-zinc-200 pb-4">
-          <Link href="/journey" className="text-xl font-semibold">
+          <Link href="/journey" className="font-display text-xl font-bold tracking-tight">
             Boundary Journey
           </Link>
           <Link href="/store" className="text-sm text-zinc-600 hover:text-zinc-900">

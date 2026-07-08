@@ -8,7 +8,7 @@ export default function LabsLayout({ children }: { children: React.ReactNode }) 
     <div>
       <DevModeBanner />
       <header className="mb-6 flex items-center gap-6 border-b border-zinc-200 pb-4">
-        <Link href="/labs" className="text-xl font-semibold">
+        <Link href="/labs" className="font-display text-xl font-bold tracking-tight">
           Labs
         </Link>
         <Link href="/labs/boundary-explorer" className="text-sm text-zinc-600 hover:text-zinc-900">

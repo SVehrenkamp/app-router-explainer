@@ -8,7 +8,7 @@ export function ProductCard({ product }: { product: Product }) {
     <Link
       href={`/store/products/${product.slug}`}
       data-testid="product-card"
-      className="rounded-xl border border-zinc-200 bg-white p-4 transition hover:shadow-md"
+      className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="mb-3 text-5xl">{product.emoji}</div>
       <div className="text-xs uppercase tracking-wide text-zinc-500">{product.category}</div>

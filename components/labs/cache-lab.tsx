@@ -47,7 +47,7 @@ export function CacheLab() {
             onClick={() => setTargetId(t.id)}
             className={`rounded-lg border px-3 py-1.5 text-sm ${
               t.id === targetId
-                ? 'border-violet-600 bg-violet-600 text-white'
+                ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm'
                 : 'border-zinc-300 hover:bg-zinc-100'
             }`}
           >
@@ -88,7 +88,7 @@ export function CacheLab() {
           <span
             key={i}
             title={point.hit ? 'HIT — same generatedAt as previous' : 'MISS — freshly generated'}
-            className={`h-6 w-6 rounded ${point.hit ? 'bg-emerald-500' : 'bg-amber-500'}`}
+            className={`h-6 w-6 rounded-md shadow-xs ${point.hit ? 'bg-teal-500' : 'bg-amber-400'}`}
           />
         ))}
         {timeline.length === 0 && (
@@ -111,8 +111,8 @@ export function CacheLab() {
             </div>
           ))}
         </div>
-        <div data-testid="cdn-lens" className="rounded-xl border border-zinc-200 bg-white p-4">
-          <div className="mb-1 text-xs uppercase tracking-wide text-zinc-500">
+        <div data-testid="cdn-lens" className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs">
+          <div className="mb-1 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
             CDN lens — what Fastly would see
           </div>
           <code className="break-all font-mono text-sm">

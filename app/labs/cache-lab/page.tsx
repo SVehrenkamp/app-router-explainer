@@ -10,7 +10,7 @@ export default function CacheLabPage() {
     <section className="space-y-6">
       <div className="flex items-start justify-between">
         <div className="max-w-2xl space-y-2">
-          <h1 className="text-3xl font-bold">Cache Lab</h1>
+          <h1 className="font-display text-4xl font-bold tracking-tight">Cache Lab</h1>
           <p className="text-zinc-600">
             Pick a route configuration, fire requests, and watch the hit/miss timeline. Same
             generatedAt twice in a row means a cache answered — no marketing, just timestamps.
