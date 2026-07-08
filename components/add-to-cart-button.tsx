@@ -4,13 +4,15 @@
 // useActionState wires a Server Action into client state (pending / result).
 import { useActionState } from 'react'
 import { addToCart, type CartActionState } from '@/app/store/cart/actions'
+import { XrayRegion } from '@/components/xray/region'
 
 const initialState: CartActionState = { ok: false, count: 0, error: null }
 
 export function AddToCartButton({ slug }: { slug: string }) {
   const [state, formAction, isPending] = useActionState(addToCart, initialState)
   return (
-    <form action={formAction}>
+    <XrayRegion label="AddToCartButton · Server Action" kind="client">
+      <form action={formAction}>
       <input type="hidden" name="slug" value={slug} />
       <button
         type="submit"
@@ -21,6 +23,7 @@ export function AddToCartButton({ slug }: { slug: string }) {
         {isPending ? 'Adding…' : state.ok ? `Added ✓ (${state.count} in cart)` : 'Add to cart'}
       </button>
       {state.error && <p className="mt-1 text-sm text-red-600">{state.error}</p>}
-    </form>
+      </form>
+    </XrayRegion>
   )
 }

@@ -9,7 +9,7 @@
 // compiles it into the client bundle. 'use client' marks a boundary, not a badge
 // every client-rendered file needs.
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query'
-import { XrayReport } from '@/components/xray/report'
+import { XrayRegion } from '@/components/xray/region'
 import { ProductCard } from '@/components/product-card'
 import { productsQueryOptions } from '@/lib/products-query'
 
@@ -19,8 +19,8 @@ export function ProductGrid() {
   const products = data.pages.flatMap((page) => page.products)
 
   return (
-    <div className="space-y-6">
-      <XrayReport label="ProductGrid" kind="client" />
+    <XrayRegion label="ProductGrid" kind="client">
+      <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3" data-testid="product-grid">
         {products.map((product) => (
           <ProductCard key={product.slug} product={product} />
@@ -36,6 +36,7 @@ export function ProductGrid() {
           {isFetchingNextPage ? 'Loading…' : 'Load more'}
         </button>
       )}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }

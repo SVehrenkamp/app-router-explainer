@@ -2,7 +2,7 @@
 // awaits ONE microservice. Because each sits behind its own <Suspense>, a slow
 // service delays only its own section — the getInitialProps model (slowest service
 // gates the whole page) is gone.
-import { XrayReport } from '@/components/xray/report'
+import { XrayRegion } from '@/components/xray/region'
 import { formatPrice } from '@/lib/format'
 import type { SimOverrides } from '@/lib/sim-params'
 import { getInventory, getPricing, getReviews } from '@/lib/services'
@@ -12,8 +12,8 @@ type SectionProps = { slug: string; sim: SimOverrides }
 export async function PricingPanel({ slug, sim }: SectionProps) {
   const { data, timing } = await getPricing(slug, sim)
   return (
-    <div data-testid="pricing-panel" className="space-y-1">
-      <XrayReport label="PricingPanel" kind="server" serviceMs={timing.ms} />
+    <XrayRegion label="PricingPanel" kind="server" serviceMs={timing.ms}>
+      <div data-testid="pricing-panel" className="space-y-1">
       <div className="text-2xl font-semibold">
         {formatPrice(data.priceCents)}
         {data.priceCents < data.listPriceCents && (
@@ -23,15 +23,16 @@ export async function PricingPanel({ slug, sim }: SectionProps) {
         )}
       </div>
       {data.promo && <div className="text-sm font-medium text-emerald-700">{data.promo}</div>}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }
 
 export async function InventoryBadge({ slug, sim }: SectionProps) {
   const { data, timing } = await getInventory(slug, sim)
   return (
-    <div data-testid="inventory-badge" className="text-sm">
-      <XrayReport label="InventoryBadge" kind="server" serviceMs={timing.ms} />
+    <XrayRegion label="InventoryBadge" kind="server" serviceMs={timing.ms}>
+      <div data-testid="inventory-badge" className="text-sm">
       {data.inStock ? (
         <span className="text-emerald-700">
           In stock — {data.quantity} available at {data.warehouse}
@@ -39,15 +40,16 @@ export async function InventoryBadge({ slug, sim }: SectionProps) {
       ) : (
         <span className="text-red-600">Out of stock</span>
       )}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }
 
 export async function ReviewsSection({ slug, sim }: SectionProps) {
   const { data, timing } = await getReviews(slug, sim)
   return (
-    <div data-testid="reviews-section" className="space-y-3">
-      <XrayReport label="ReviewsSection" kind="server" serviceMs={timing.ms} />
+    <XrayRegion label="ReviewsSection" kind="server" serviceMs={timing.ms}>
+      <div data-testid="reviews-section" className="space-y-3">
       <div className="text-sm text-zinc-600">
         {data.averageRating} ★ · {data.reviews.length} reviews
       </div>
@@ -59,6 +61,7 @@ export async function ReviewsSection({ slug, sim }: SectionProps) {
           <p className="text-sm text-zinc-600">{review.body}</p>
         </blockquote>
       ))}
-    </div>
+      </div>
+    </XrayRegion>
   )
 }
