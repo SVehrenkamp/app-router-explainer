@@ -66,4 +66,54 @@ The reflex from `_app` is "providers at the top" — and that instinct survives,
 
 A library that calls hooks or touches `window` needs to live behind a `'use client'` file. If the package ships no directive itself, wrap it: one small file with `'use client'` that re-exports what you need. Your server components then pass data (or children) through the wrapper — same slot pattern as module 4.
 
+## Case study: one ProductContext, both worlds
+
+The hardest provider question in a real migration isn't *where* the provider goes — it's the deeply-integrated context that every component reads through selector hooks. `useProductDisplayPrice()`, `useProductDiscountPercent()`: dozens of call sites, derived values, no appetite for a big-bang rewrite. Server components can't call `useContext` — so is that context a dead end?
+
+No. The refactor is a **split, not a rewrite**, and it works because those hooks were doing two jobs: *locating* the data (environment-specific) and *deriving* values from it (pure). Four small files:
+
+1. **Selectors** move to a pure module — no React imports. This is the valuable logic, and it doesn't change.
+2. **The client half** is your existing context file, minus the derivation — provider and hooks keep their exact signatures. **Every existing consumer compiles untouched.**
+3. **The server half** uses `React.cache()` as a request-scoped slot — seeded once, read anywhere below with no prop threading. Same missing-provider error contract as the hook. `server-only` poisons it against bundle leaks.
+4. **The channel** bridges them: one server component that fetches once, seeds the slot, and renders the unchanged client provider with the same bundle (one serialization across the boundary — the client never refetches).
+
+<CodeDiff before="Before — hook-only, client-locked" after="After — same API, both worlds">
+
+```tsx
+// ProductContext.tsx — locate AND derive
+// fused together, so everything that
+// touches price must be client code.
+const ProductContext = createContext(null)
+
+export function useProductDisplayPrice() {
+  const bundle = useContext(ProductContext)
+  return formatPrice(bundle.pricing.priceCents)
+}
+```
+
+```tsx
+// selectors.ts — pure, shared verbatim
+export const selectDisplayPrice = (b) =>
+  formatPrice(b.pricing.priceCents)
+
+// client.tsx — existing hook, now thin
+export const useProductDisplayPrice = () =>
+  selectDisplayPrice(useProductBundle())
+
+// server.ts — the mirror, via cache() slot
+export const productDisplayPrice = () =>
+  selectDisplayPrice(readBundle())
+```
+
+</CodeDiff>
+
+<ModuleEmbed href="/journey/context-bridge/products/aurora-desk-lamp" title="The context bridge, live">
+  A server panel reading productDisplayPrice() next to a client panel reading
+  useProductDisplayPrice() — same numbers, because the data and selectors are
+  shared. Toggle X-ray to see the two environments; block the network tab and
+  note the client panel never fetches.
+</ModuleEmbed>
+
+The migration is then incremental by construction: adopt the channel route by route (it renders the legacy provider, so nothing breaks), and move consumers server-side one call site at a time — `useProductDisplayPrice()` becomes `productDisplayPrice()`, drop the `'use client'`, done.
+
 <DrillDeck module="hooks-client-patterns" />

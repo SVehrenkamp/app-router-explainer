@@ -54,6 +54,10 @@ export const SOURCE_FILES = {
     path: 'components/learn/drill-deck.tsx',
     title: 'DrillDeck — instant-feedback scenario cards',
   },
+  'context-bridge': {
+    path: 'lib/product-channel/channel.tsx',
+    title: 'ProductChannel — one context, both worlds',
+  },
 } as const satisfies Record<string, SourceEntry>
 
 export type SourceId = keyof typeof SOURCE_FILES

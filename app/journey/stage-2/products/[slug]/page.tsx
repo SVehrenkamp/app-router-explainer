@@ -30,7 +30,7 @@ export default async function Stage2Page({ params }: { params: Promise<{ slug: s
 
   return (
     <div>
-      <StageBanner stage={JOURNEY_STAGES[2]} />
+      <StageBanner stage={JOURNEY_STAGES[2]} slug={slug} />
       <article data-testid="stage2-pdp" className="grid gap-8 md:grid-cols-2">
         <div className="flex items-center justify-center rounded-xl bg-white py-16 text-8xl">
           {product.emoji}

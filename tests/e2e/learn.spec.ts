@@ -55,3 +55,14 @@ test('modules 4-12 render with drills and their signature content', async ({ pag
     await expect(page.getByTestId(/^drill-/).first()).toBeVisible()
   }
 })
+
+test('modules have linear prev/next navigation', async ({ page }) => {
+  await page.goto('/learn/why-app-router')
+  await expect(page.getByTestId('module-nav-prev')).toHaveCount(0)
+  await page.getByTestId('module-nav-next').click()
+  await expect(page).toHaveURL(/\/learn\/mental-model/)
+  await expect(page.getByTestId('module-nav-prev')).toContainText('Why the App Router')
+  await page.goto('/learn/migration-playbook')
+  await expect(page.getByTestId('module-nav-next')).toHaveCount(0)
+  await expect(page.getByTestId('module-nav-prev')).toContainText('Boundary Journey')
+})

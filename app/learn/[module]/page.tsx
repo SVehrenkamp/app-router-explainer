@@ -3,6 +3,7 @@
 // server components — module prose ships as HTML, not JS.
 import type { ComponentType } from 'react'
 import { notFound } from 'next/navigation'
+import { ModuleNav } from '@/components/learn/module-nav'
 import { MODULES, moduleBySlug } from '@/lib/curriculum'
 
 const CONTENT: Record<string, () => Promise<{ default: ComponentType }>> = {
@@ -47,6 +48,7 @@ export default async function ModulePage({ params }: { params: Promise<{ module:
         </span>
       </header>
       <Content />
+      <ModuleNav current={slug} />
     </article>
   )
 }
