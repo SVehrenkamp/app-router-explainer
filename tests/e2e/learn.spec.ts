@@ -66,3 +66,14 @@ test('modules have linear prev/next navigation', async ({ page }) => {
   await expect(page.getByTestId('module-nav-next')).toHaveCount(0)
   await expect(page.getByTestId('module-nav-prev')).toContainText('Boundary Journey')
 })
+
+test('module mapping tables render as tables, not paragraph text', async ({ page }) => {
+  // Pipe tables are GFM, not core MDX — this pins the remark-gfm wiring.
+  await page.goto('/learn/routing-layouts')
+  await expect(page.locator('article table')).toBeVisible()
+  await expect(page.locator('article table')).toContainText('route handlers')
+  await page.goto('/learn/hooks-client-patterns')
+  await expect(page.locator('article table')).toContainText('usePathname()')
+  await page.goto('/learn/caching-cdn')
+  await expect(page.locator('article table')).toContainText('Full Route Cache')
+})
