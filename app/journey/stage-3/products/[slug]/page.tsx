@@ -35,7 +35,7 @@ export default async function Stage3Page({ params, searchParams }: Props) {
 
   return (
     <div>
-      <StageBanner stage={JOURNEY_STAGES[3]} />
+      <StageBanner stage={JOURNEY_STAGES[3]} slug={slug} />
       <article className="grid gap-8 md:grid-cols-2">
         <div className="flex items-center justify-center rounded-xl bg-white py-16 text-8xl">
           {product.emoji}
