@@ -6,7 +6,9 @@
 // client and hydrates. Compare /journey/stage-3/products/[slug].
 import type { NextPage, NextPageContext } from 'next'
 import { useQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 import { LegacyShell } from '@/components/legacy-shell'
+import { JOURNEY_STAGES } from '@/lib/journey'
 import { fetchLegacyJson, type LegacyReq } from '@/lib/legacy-fetch'
 import { formatPrice } from '@/lib/format'
 import type { Inventory, Pricing, Product, ReviewSummary } from '@/lib/types'
@@ -30,6 +32,18 @@ const LegacyProductPage: NextPage<Props> = ({ product, pricing, inventory }) => 
 
   return (
     <LegacyShell title={product.name}>
+      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300 bg-amber-100/60 px-4 py-2.5 text-sm text-amber-900">
+        <span>
+          This is <strong>stage 0</strong> of the Boundary Journey — the app as it works today.
+        </span>
+        <Link
+          data-testid="legacy-advance"
+          href={JOURNEY_STAGES[1].pdpRoute(product.slug)}
+          className="ml-auto rounded-lg bg-amber-900 px-3 py-1 font-mono text-xs font-semibold text-amber-50 transition hover:bg-amber-800"
+        >
+          advance to stage 1 →
+        </Link>
+      </div>
       <article data-testid="legacy-pdp" className="grid gap-8 md:grid-cols-2">
         <div className="flex items-center justify-center rounded-xl bg-white py-16 text-8xl">
           {product.emoji}

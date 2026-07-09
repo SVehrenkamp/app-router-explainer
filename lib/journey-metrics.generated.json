@@ -4,8 +4,8 @@
     {
       "stage": 0,
       "route": "/legacy/products/[slug]",
-      "firstLoadKB": 332.4,
-      "pageKB": 12.3
+      "firstLoadKB": 334.3,
+      "pageKB": 14.2
     },
     {
       "stage": 1,

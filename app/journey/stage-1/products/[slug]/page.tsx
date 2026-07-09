@@ -10,7 +10,7 @@ export default async function Stage1Page({ params }: { params: Promise<{ slug: s
   const { slug } = await params
   return (
     <div>
-      <StageBanner stage={JOURNEY_STAGES[1]} />
+      <StageBanner stage={JOURNEY_STAGES[1]} slug={slug} />
       <Stage1PDP slug={slug} />
     </div>
   )

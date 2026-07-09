@@ -43,3 +43,14 @@ test('journey dashboard lists all four stages with measured bundle sizes', async
   await expect(page.getByTestId('metrics-table')).toContainText('KB')
   await expect(page.getByTestId('stage-card').filter({ hasText: 'Stage 3' })).toBeVisible()
 })
+
+test('journey stages have linear prev/next navigation preserving the product', async ({ page }) => {
+  await page.goto('/journey/stage-1/products/aurora-desk-lamp')
+  await page.getByTestId('stage-nav-next').click()
+  await expect(page).toHaveURL(/stage-2\/products\/aurora-desk-lamp/)
+  await expect(page.getByTestId('stage-nav-prev')).toBeVisible()
+  // Stage 0 lives in the Pages Router — its advance affordance is in the legacy chrome.
+  await page.goto('/legacy/products/aurora-desk-lamp')
+  await page.getByTestId('legacy-advance').click()
+  await expect(page).toHaveURL(/stage-1\/products\/aurora-desk-lamp/)
+})
